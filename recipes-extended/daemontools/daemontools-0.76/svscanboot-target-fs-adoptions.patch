@@ -1,0 +1,17 @@
+--- a/src/svscanboot.sh.orig	2014-09-09 09:51:10.419680502 +0200
++++ b/src/svscanboot.sh	2014-09-09 09:56:45.307681762 +0200
+@@ -1,11 +1,11 @@
+ 
+-PATH=/command:/usr/local/bin:/usr/local/sbin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin
++PATH=/bin:/sbin:/usr/bin:/usr/sbin
+ 
+ exec </dev/null
+ exec >/dev/null
+ exec 2>/dev/null
+ 
+-/command/svc -dx /service/* /service/*/log
++/usr/bin/svc -dx /etc/daemontools/service/* /etc/daemontools/service/*/log
+ 
+-env - PATH=$PATH svscan /service 2>&1 | \
++env - PATH=$PATH svscan /etc/daemontools/service 2>&1 | \
+ env - PATH=$PATH readproctitle service errors: ................................................................................................................................................................................................................................................................................................................................................................................................................

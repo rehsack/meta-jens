@@ -1,0 +1,29 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:             delivery reset
+# Required-Start:       $local_fs
+# Required-Stop:
+# Default-Start:
+# Default-Stop:
+# Short-Description:    Perform delivery reset based on flag files on external medium
+### END INIT INFO
+
+set -x
+
+CLEANUP_SPEC="/data/.shadow/.etc/@CLEANUP_SPEC@"
+. @LIBEXEC@/delivery-reset
+
+OVERLAY_MOUNTED=`mount | egrep '^(unionfs|overlay)' | wc -l`
+test ${OVERLAY_MOUNTED:-0} -eq 0 || exit 1
+
+EXT_MEDIA=`mount | grep -v @ROOT_DEV_NAME@ | egrep '^/dev/' | grep @MEDIA_MNT_BASE@ | awk '{print $3}'`
+GUESS_WHAT=`echo "${DR_GUESS_WHAT}" | sed -e 's,|, ,g'`
+
+for em in ${EXT_MEDIA}
+do
+    for gw in ${GUESS_WHAT}
+    do
+	test -f ${em}/reset_${gw}.yes_i_am_sure && delivery_reset_for_${gw}
+	rm -f ${em}/reset_${gw}.yes_i_am_sure
+    done
+done

@@ -1,0 +1,3 @@
+post_flash () {
+    test -f ${IMAGE_CONTAINER}/post-flash.tar.bz2 && (cd ${DATA_MNT} && tar xjf ${IMAGE_CONTAINER}/post-flash.tar.bz2)
+}

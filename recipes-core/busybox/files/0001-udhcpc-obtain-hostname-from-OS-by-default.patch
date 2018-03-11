@@ -1,0 +1,40 @@
+From 2663232d76efbf0959deaea9ec10856646e5aba0 Mon Sep 17 00:00:00 2001
+From: Andreas Oberritter <obi@opendreambox.org>
+Date: Wed, 20 Mar 2013 14:31:25 +0100
+Subject: [PATCH] udhcpc: obtain hostname from OS by default
+
+Doesn't require the 'hostname' option in /etc/network/interfaces, and thus
+makes udhcpc behave like other clients.
+
+Signed-off-by: Andreas Oberritter <obi@opendreambox.org>
+Signed-off-by: Jens Rehsack <sno@netbsd.org>
+---
+ networking/udhcp/dhcpc.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/networking/udhcp/dhcpc.c b/networking/udhcp/dhcpc.c
+index fae7e17..2e3b84b 100644
+--- a/networking/udhcp/dhcpc.c
++++ b/networking/udhcp/dhcpc.c
+@@ -1405,6 +1405,18 @@ int udhcpc_main(int argc UNUSED_PARAM, char **argv)
+ 		logmode |= LOGMODE_SYSLOG;
+ 	}
+ 
++	/* try to get hostname from OS */
++	if (!client_config.hostname) {
++		char *hostname = safe_gethostname();
++		/*
++		 * Tito's safe_gethostname is finally a "safe_visible_gethostname",
++		 * but that's the most seen use-case.
++		 */
++		if (hostname[0] && hostname[0] != '?')
++			client_config.hostname = alloc_dhcp_option(DHCP_HOST_NAME, hostname, 0);
++		free(hostname);
++	}
++
+ 	/* Make sure fd 0,1,2 are open */
+ 	bb_sanitize_stdio();
+ 	/* Equivalent of doing a fflush after every \n */
+-- 
+2.5.4 (Apple Git-61)
+

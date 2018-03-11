@@ -1,0 +1,19 @@
+# stock fstab - you probably want to override this with a machine specific one
+
+/dev/root            /                    auto       defaults              1  1
+proc                 /proc                proc       defaults              0  0
+devpts               /dev/pts             devpts     mode=0620,gid=5       0  0
+usbdevfs             /proc/bus/usb        usbdevfs   noauto                0  0
+tmpfs                /run                 tmpfs      mode=0755,nodev,nosuid,strictatime 0  0
+tmpfs                /var/volatile        tmpfs      nodev,nosuid,size=256M 0  0
+
+# uncomment this if your device has a SD/MMC/Transflash slot
+#/dev/mmcblk0p1       /media/card          auto       defaults,sync,noauto  0  0
+/dev/@DEV_PFX@1	/boot		ext2	noauto			1 2
+/dev/@DEV_PFX@4	/data		ext4	defaults		1 2
+@overlay@	/etc	overlay	noauto,lowerdir=/etc,upperdir=/data/.shadow/.etc,workdir=/data/.work/.etc	0 0
+@overlay@	/home	overlay	noauto,lowerdir=/home,upperdir=/data/.shadow/.home,workdir=/data/.work/.home	0 0
+@overlayfs@	/etc	overlayfs	noauto,lowerdir=/etc,upperdir=/data/.shadow/.etc	0 0
+@overlayfs@	/home	overlayfs	noauto,lowerdir=/home,upperdir=/data/.shadow/.home	0 0
+@unionfs@	/etc	unionfs	noauto,dirs=/data/.shadow/.etc=rw:/etc=ro	0 0
+@unionfs@	/home	unionfs	noauto,dirs=/data/.shadow/.home=rw:/home=ro	0 0

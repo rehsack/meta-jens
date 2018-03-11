@@ -1,0 +1,16 @@
+{
+    "log_adapter" : [
+        "Dispatch",
+        "outputs", [
+            [ "File",   "min_level", "debug", "filename", "/var/log/sysimg_update.log", "newline", 1, "mode", ">>" ],
+            [ "File",   "min_level", "error", "filename", "/var/log/sysimg_update.error", "newline", 1, "mode", ">>" ],
+            [ "Screen", "min_level", "debug", "newline", 1, "stderr", 1 ]
+        ]
+    ],
+    "update_manifest_basename" : "manifest-4.1.json",
+    "download_file_prefix": "@MACHINE@/",
+    "restrict_record_installed": [ "system-image" ],
+    "record_installed_aliases": {
+        "hp-blob": "hp2"
+    }
+}

@@ -1,0 +1,40 @@
+#!/bin/sh
+
+# This file is contributed by BraLUG e.V. via 
+#  http://www.bralug.de/wiki/Automatische_Auswahl_der_Netzwerkkarte_mittels_ifplugd
+
+set -e
+
+if [ -z "$1" ] || [ -z "$2" ] ; then
+        echo "Wrong arguments" > /dev/stderr
+        exit 1
+fi
+if [ "$1" != "@DEFAULT_ETH_DEV@" ]; then
+        echo "Wrong interface!" > /dev/stderr
+        exit 1
+fi
+
+# don't go down just because
+test "$2" = "${IFPLUGD_CURRENT}" || exit 0
+
+if [ "$2" = "up" ] ; then
+	@BINDIR@/disable-error no-carrier
+	grep -q $1 /run/ifstate && exit 0
+
+        /sbin/ifdown @DEFAULT_WIFI_DEV@ 2>/dev/null || :
+        test -f /tmp/${1}.settled || sleep 5s
+        touch /tmp/${1}.settled
+        test -x /usr/sbin/ethtool -a -f /etc/ethtool-config && . /etc/ethtool-config && /usr/sbin/ethtool ${ETHTOOL_ARGS}
+        /sbin/ifup $1
+        a=0; while ! svok /etc/daemontools/service/default-wifi/ && [ $a -lt 50 ]; do sleep 1; a=$((a+1)); done # wait max. 50s until service is up
+        svc -o /etc/daemontools/service/default-wifi # enable wlan0-nonet
+        exit 0
+elif [ "$2" = "down" ] ; then
+        /sbin/ifdown @DEFAULT_WIFI_DEV@ # disable wlan0-nonet
+        /sbin/ifdown $1
+        a=0; while ! svok /etc/daemontools/service/default-wifi/ && [ $a -lt 50 ]; do sleep 1; a=$((a+1)); done # wait max. 50s until service is up
+        svc -o /etc/daemontools/service/default-wifi # whatever is configured there ...
+        exit 0
+fi
+
+exit 1

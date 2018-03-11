@@ -1,0 +1,1 @@
+__oe_prepend_path "$(readlink -f $OEROOT)/meta-jens/scripts"

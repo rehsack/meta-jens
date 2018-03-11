@@ -1,0 +1,167 @@
+#!/bin/sh
+
+set -x
+
+. `dirname $0`/algorithms
+
+IMGSPC=""
+BUILD_IMAGES=""
+IMAGES=""
+
+for IMAGE in "$@"
+do
+    RECOVERY_IMAGE="rdm-core-image"
+
+    echo $IMAGE | fgrep -e "-dev-image"
+    test $? -eq 0 && RECOVERY_IMAGE="rdm-core-dev-image"
+
+    IMAGES="${IMAGES}${IMGSPC}${IMAGE}"
+    BUILD_IMAGES="${BUILD_IMAGES}${IMGSPC}${IMAGE}"
+    IMGSPC=" "
+    echo ${IMAGES} | fgrep -e "${RECOVERY_IMAGE}"
+    if [ "$?" != "0" ]
+    then
+	IMAGES="${IMAGES} ${RECOVERY_IMAGE}"
+    fi
+done
+
+set -e
+
+BITBAKE_OPTIONS="-k"
+bitbake ${BITBAKE_OPTIONS} ${IMAGES} || bitbake ${IMAGES}
+
+BITBAKE_SETTINGS=`bitbake -e system-image | egrep "(KERNEL_DEVICETREE|KERNEL_IMAGETYPE|UBOOT_SUFFIX|UBOOT_PADDING|PV|MACHINE_ARCH|AVAIL_ROOT_DEVS|WANTED_ROOT_DEV|ROOT_DEV_NAME|ROOT_DEV_SEP|ROOT_DEV_TYPE|U_BOOT_MIN_SYSIMG_VER|UNION_SHADOWS)=" | sed -e "s/MACHINE_ARCH/MACHINE/" -e "s/PV/SYSIMG_VERSION/" -e "s/KERNEL_DEVICETREE/KERNEL_DEVICE_TREE/"`
+eval $BITBAKE_SETTINGS
+test -z "${UBOOT_PADDING}" && UBOOT_PADDING=0
+
+DEPLOY_DIR_IMAGE="tmp/deploy/images/${MACHINE}"
+
+PREFIX=""
+test "${WANTED_ROOT_DEV}" = "sd" && PREFIX="sd"
+test "${USBSTICK_IMAGE}" = "usb" && PREFIX="usb"
+LABEL="${PREFIX}${MACHINE}"
+
+script_bin="`readlink ${DEPLOY_DIR_IMAGE}/bootscript`"
+kernel_bin="`readlink ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${MACHINE}.bin`"
+kernel_dtb="`readlink ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${KERNEL_DEVICE_TREE} || true`"
+
+KERNEL="${kernel_bin} ${script_bin}"
+KERNEL_PREPARE="mv ${kernel_bin} ${KERNEL_IMAGETYPE}-${MACHINE} && mv ${script_bin} bootscript"
+KERNEL_RECOVERY="ln -f ${KERNEL_IMAGETYPE} ${KERNEL_IMAGETYPE}-${MACHINE}"
+KERNEL_SANITIZE="mv ${KERNEL_IMAGETYPE}-${MACHINE} ${KERNEL_IMAGETYPE}"
+KERNEL_FILES="${KERNEL_IMAGETYPE}-${MACHINE}.bin ${kernel_bin} bootscript ${script_bin}"
+if [ -n "${KERNEL_DEVICE_TREE}" ]
+then
+    for DTS_FILE in ${KERNEL_DEVICE_TREE}
+    do
+	DTS_BASE_NAME=`basename ${DTS_FILE} | awk -F "." '{print $1}'`
+	if [ -e "${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${DTS_BASE_NAME}.dtb" ]
+	then
+	    bin_for_dtb="`readlink ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${DTS_BASE_NAME}.dtb`"
+	    kernel_bin_for_dtb="`echo ${bin_for_dtb} | sed "s,$DTS_BASE_NAME,${MACHINE},g;s,\.dtb$,.bin,g"`"
+	    if [ $kernel_bin = $kernel_bin_for_dtb ]
+	    then
+		KERNEL_FILES="${KERNEL_FILES} ${KERNEL_IMAGETYPE}-${DTS_BASE_NAME}.dtb ${bin_for_dtb}"
+		KERNEL="${KERNEL} ${bin_for_dtb}"
+		KERNEL_PREPARE="${KERNEL_PREPARE} && mv ${bin_for_dtb} ${DTS_BASE_NAME}.dtb"
+	    fi
+	fi
+    done
+fi
+
+for IMAGE in ${BUILD_IMAGES}
+do
+    SYSIMG_FILES=".${IMAGE}-${WANTED_ROOT_DEV}-${SYSIMG_VERSION}-settings .settings"
+    FILES="${SYSIMG_FILES} ${KERNEL_FILES}"
+    DEV=0
+    RECOVERY_IMAGE="rdm-core-image"
+
+    set +e
+    echo $IMAGE | fgrep -e "-dev-image"
+    test $? -eq 0 && DEV=1
+    test "$DEV" -eq 1 && RECOVERY_IMAGE="rdm-core-dev-image"
+    set -e
+
+    A=""
+    SPC=""
+
+    for a in $ALGORITHMS
+    do
+        S=""
+        K=""
+        for k in ${KERNEL}
+        do
+            K="${K}${S}`$a ${DEPLOY_DIR_IMAGE}/${k}`"
+            S=" "
+        done
+        A="${A}${SPC}kernel_${a}=\"$K\""
+        SPC=" "
+    done
+
+    uboot_bin="`readlink ${DEPLOY_DIR_IMAGE}/u-boot-${MACHINE}.${UBOOT_SUFFIX}`"
+    for a in $ALGORITHMS
+    do
+        A="${A}${SPC}uboot_${a}=`$a ${DEPLOY_DIR_IMAGE}/${uboot_bin}`"
+        SPC=" "
+    done
+    FILES="${FILES} u-boot-${MACHINE}.${UBOOT_SUFFIX} ${uboot_bin}"
+
+    rootimg="`readlink ${DEPLOY_DIR_IMAGE}/${IMAGE}-${WANTED_ROOT_DEV}-${MACHINE}.squashfs-xz`"
+    for a in $ALGORITHMS
+    do
+        A="${A}${SPC}rootimg_${a}=`$a ${DEPLOY_DIR_IMAGE}/${rootimg}`"
+    done
+    FILES="${FILES} ${rootimg}"
+
+    recimg="`readlink ${DEPLOY_DIR_IMAGE}/${RECOVERY_IMAGE}-${WANTED_ROOT_DEV}-${MACHINE}.squashfs-xz`"
+    for a in $ALGORITHMS
+    do
+        A="${A}${SPC}recimg_${a}=`$a ${DEPLOY_DIR_IMAGE}/${recimg}`"
+    done
+    FILES="${FILES} ${recimg}"
+
+    eval $A
+
+cat >${DEPLOY_DIR_IMAGE}/.${IMAGE}-${WANTED_ROOT_DEV}-${SYSIMG_VERSION}-settings <<EOS
+SYSIMG_VER=${SYSIMG_VERSION}
+U_BOOT_MIN_SYSIMG_VER=${U_BOOT_MIN_SYSIMG_VER}
+DEV=${DEV}
+MACHINE=${MACHINE}
+UBOOT_BIN=${uboot_bin}
+UBOOT_SIZE=${uboot_size}
+UBOOT_MD5=${uboot_md5}
+UBOOT_SHA1=${uboot_sha1}
+UBOOT_RMD160=${uboot_rmd160}
+UBOOT_PADDING="${UBOOT_PADDING}"
+ROOTIMG=${rootimg}
+ROOTIMG_SIZE=${rootimg_size}
+ROOTIMG_MD5=${rootimg_md5}
+ROOTIMG_SHA1=${rootimg_sha1}
+ROOTIMG_RMD160=${rootimg_rmd160}
+RECOVERIMG=${recimg}
+RECOVERIMG_SIZE=${recimg_size}
+RECOVERIMG_MD5=${recimg_md5}
+RECOVERIMG_SHA1=${recimg_sha1}
+RECOVERIMG_RMD160=${recimg_rmd160}
+KERNEL="${KERNEL}"
+KERNEL_SIZE="${kernel_size}"
+KERNEL_MD5="${kernel_md5}"
+KERNEL_SHA1="${kernel_sha1}"
+KERNEL_RMD160="${kernel_rmd160}"
+KERNEL_PREPARE="${KERNEL_PREPARE}"
+KERNEL_RECOVERY="${KERNEL_RECOVERY}"
+KERNEL_SANITIZE="${KERNEL_SANITIZE}"
+LABEL="${LABEL}"
+UNION_SHADOWS="${UNION_SHADOWS}"
+WANTED_ROOT_DEV="${WANTED_ROOT_DEV}"
+ROOT_DEV_NAME="${ROOT_DEV_NAME}"
+ROOT_DEV_SEP="${ROOT_DEV_SEP}"
+ROOT_DEV_TYPE="${ROOT_DEV_TYPE}"
+EOS
+
+    # XXX change next line into ln -sf after next applied update ...
+    (cd ${DEPLOY_DIR_IMAGE} && cp -f .${IMAGE}-${WANTED_ROOT_DEV}-${SYSIMG_VERSION}-settings .settings)
+    (cd ${DEPLOY_DIR_IMAGE} && rm -f ${IMAGE}-${WANTED_ROOT_DEV}-${SYSIMG_VERSION}-complete.cpi)
+    (cd ${DEPLOY_DIR_IMAGE} && tar cjf ${IMAGE}-${WANTED_ROOT_DEV}-${SYSIMG_VERSION}-complete.cpi ${FILES})
+    (cd ${DEPLOY_DIR_IMAGE} && ln -sf ${IMAGE}-${WANTED_ROOT_DEV}-${SYSIMG_VERSION}-complete.cpi ${IMAGE}-${WANTED_ROOT_DEV}-complete.cpi)
+done

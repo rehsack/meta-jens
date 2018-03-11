@@ -1,0 +1,10 @@
+#!/bin/sh 
+
+test -f /tmp/sysimg_update.once || rm -rf /data/.update/*
+test -f /tmp/sysimg_update.once || sleep 5m
+touch /tmp/sysimg_update.once
+
+export SYSTEM_IMAGE_UPDATE_DIR=/data/.update
+export SYSTEM_IMAGE_UPDATE_FLASH_DIR=/data/.flashimg
+mkdir -p ${SYSTEM_IMAGE_UPDATE_DIR}
+exec /usr/bin/sysimg_update 2>&1

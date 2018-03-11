@@ -1,0 +1,84 @@
+commit 10a90b0b9da9770fa47d5123d7611a466d291fed
+Author: Jens Rehsack <sno@netbsd.org>
+Date:   Thu Oct 22 21:15:05 2015 +0200
+
+    introduce support for sdkroot and sysroot to support cross-builds
+    
+    To allow building for another location rather the final install prefix,
+    regardless whether chroot based builds, cross-compile or canadian cross sdk
+    is the goal, realize the difference between prefix, the sdk-root and the
+    system root for final target.
+    
+    Signed-off-by: Jens Rehsack <sno@netbsd.org>
+
+diff --git a/Configure.pl b/Configure.pl
+index 9e79693..bb467c9 100755
+--- a/Configure.pl
++++ b/Configure.pl
+@@ -29,6 +29,7 @@ MAIN: {
+ 
+     my %options;
+     GetOptions(\%options, 'help!', 'prefix=s',
++               'sysroot=s', 'sdkroot=s',
+                'backends=s',
+                'no-clean',
+                'with-parrot=s', 'gen-parrot:s', 'parrot-config=s', 'parrot-option=s@',
+@@ -82,9 +83,16 @@ MAIN: {
+         $default_backend = 'moar';
+     }
+ 
++    # XXX mkpath instead?
+     mkdir($options{'prefix'}) if $options{'prefix'} && $^O =~ /Win32/ && !-d $options{'prefix'};
+-    my $prefix      = ($options{'prefix'} && abs_path($options{'prefix'})) || cwd().'/install';
++    my $prefix      = $options{'prefix'}
++                    ? abs_path($options{'prefix'})
++                    : ($options{sysroot}
++		      ? '/usr'
++		      : File::Spec->catdir(cwd, 'install'));
+     $config{prefix} = $prefix;
++    $config{sysroot} = $options{sysroot};
++    $config{sdkroot} = $options{sdkroot};
+ 
+     # Save options in config.status
+     unlink('config.status');
+@@ -336,6 +344,8 @@ Configure.pl - NQP Configure
+ General Options:
+     --help             Show this text
+     --prefix=dir       Install files in dir
++    --sysroot=dir      Use this dir when searching for 3rd party libraries
++    --sdkroot=dir      Use this dir when searching for sdk components
+     --backends=list    Backends to use: $backends
+     --with-parrot=path/to/bin/parrot
+                        Parrot executable to use to build NQP
+diff --git a/tools/build/Makefile-common.in b/tools/build/Makefile-common.in
+index 9d4c61b..42ebba5 100644
+--- a/tools/build/Makefile-common.in
++++ b/tools/build/Makefile-common.in
+@@ -99,6 +99,7 @@ CP            = $(PERL) -MExtUtils::Command -e cp
+ RM_RF         = $(PERL) -MExtUtils::Command -e rm_rf
+ RM_F          = $(PERL) -MExtUtils::Command -e rm_f
+ 
++SYSROOT         = @sysroot@
+ PREFIX          = @prefix@
+ BIN_DIR         = $(PREFIX)/bin
+ NQP_LANG_DIR    = $(PREFIX)/share/nqp
+diff --git a/tools/lib/NQP/Configure.pm b/tools/lib/NQP/Configure.pm
+index f4bc81b..8779c46 100644
+--- a/tools/lib/NQP/Configure.pm
++++ b/tools/lib/NQP/Configure.pm
+@@ -437,13 +437,14 @@ sub gen_moar {
+     my %options  = @_;
+ 
+     my $prefix     = $options{'prefix'} || cwd()."/install";
++    my $sdkroot    = $options{'sdkroot'} || '';
+     my $gen_moar   = $options{'gen-moar'};
+     my @opts       = @{ $options{'moar-option'} || [] };
+     push @opts, "--optimize";
+     my $startdir   = cwd();
+     my $git_protocol = $options{'git-protocol'} || 'https';
+ 
+-    my $moar_exe   = $options{'with-moar'} || "$prefix/bin/moar$exe";
++    my $moar_exe   = $options{'with-moar'} || File::Spec->catfile( $sdkroot, $prefix, 'bin', "moar$exe" );
+     my $moar_have  = qx{ $moar_exe --version };
+     if ($moar_have) {
+         $moar_have = $moar_have =~ /version (\S+)/ ? $1 : undef;

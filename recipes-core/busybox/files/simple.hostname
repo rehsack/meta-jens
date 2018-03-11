@@ -1,0 +1,28 @@
+#!/bin/sh
+
+[ -z "$1" ] && echo "Error: should be called from udhcpc" && exit 1
+
+set_hostname() {
+    if [ -n "$hostname" -a ${IF_ACCEPT_HOSTNAME:=1} -eq 1 ]; then
+        hostname "$hostname"
+        echo "$hostname" > /run/dyn-hostname.$IFACE
+    elif [ -n "$IF_HOSTNAME" ]; then
+        hostname "$IF_HOSTNAME"
+        echo "$IF_HOSTNAME" > /run/dyn-hostname.$IFACE
+    elif [ `hostname` != `cat /etc/hostname` ]; then
+        hostname $(cat /etc/hostname)
+        rm -f /run/dyn-hostname.$IFACE
+    fi
+}
+
+case "$1" in
+    deconfig)
+        hostname $(cat /etc/hostname)
+        rm -f /run/dyn-hostname.$IFACE
+        ;;
+    bound|renew|rebind)
+        set_hostname
+        ;;
+esac
+
+:

@@ -1,0 +1,1 @@
+__oe_remove_path "$(readlink -f $OEROOT)/meta-jens/scripts"

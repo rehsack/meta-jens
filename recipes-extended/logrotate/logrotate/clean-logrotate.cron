@@ -1,0 +1,3 @@
+#!/bin/sh
+
+test -f /var/lib/logrotate.status && rm /var/lib/logrotate.status

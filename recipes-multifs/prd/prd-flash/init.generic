@@ -1,0 +1,25 @@
+trigger_error () {
+    exit 1
+}
+
+trigger_fail () {
+    poweroff
+    exit 1 # safety first
+}
+
+trigger_recover () {
+    :
+}
+
+trigger_root () {
+    :
+}
+
+silence_recover () {
+    :
+}
+
+silence_root () {
+    :
+}
+

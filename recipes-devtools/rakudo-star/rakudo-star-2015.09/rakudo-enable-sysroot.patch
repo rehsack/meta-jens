@@ -1,0 +1,106 @@
+commit ab6ff76bf6c021a2c8ea26ab75f7691f3148f704
+Author: Jens Rehsack <sno@netbsd.org>
+Date:   Thu Oct 22 21:20:18 2015 +0200
+
+    introduce support for sdkroot and sysroot to support cross-builds
+    
+    To allow building for another location rather the final install prefix,
+    regardless whether chroot based builds, cross-compile or canadian cross sdk
+    is the goal, realize the difference between prefix, the sdk-root and the
+    system root for final target.
+    
+    Signed-off-by: Jens Rehsack <sno@netbsd.org>
+
+diff --git a/rakudo/Configure.pl b/rakudo/Configure.pl
+index edc33f9..5b2f034 100644
+--- a/rakudo/Configure.pl
++++ b/rakudo/Configure.pl
+@@ -33,7 +33,8 @@ MAIN: {
+ 
+     my %options;
+     GetOptions(\%options, 'help!', 'prefix=s',
+-                'backends=s', 'no-clean!',
++               'sysroot=s', 'sdkroot=s',
++               'backends=s', 'no-clean!',
+                'gen-nqp:s',
+                'gen-moar:s', 'moar-option=s@',
+                'git-protocol=s',
+@@ -51,9 +52,9 @@ MAIN: {
+     }
+ 
+     unless (defined $options{prefix}) {
+-        my $dir = getcwd;
+-        print "ATTENTION: no --prefix supplied, building and installing to $dir/install\n";
+-        $options{prefix} = 'install';
++	my $default = defined($options{sysroot}) ? '/usr' : File::Spec->catdir(getcwd, 'install');
++        print "ATTENTION: no --prefix supplied, building and installing to $default\n";
++        $options{prefix} = $default;
+     }
+     $options{prefix} = File::Spec->rel2abs($options{prefix});
+     my $prefix         = $options{'prefix'};
+@@ -123,6 +124,8 @@ MAIN: {
+     }
+ 
+     $config{prefix} = $prefix;
++    $config{sdkroot} = $options{sdkroot};
++    $config{sysroot} = $options{sysroot};
+     $config{slash}  = $slash;
+     $config{'makefile-timing'} = $options{'makefile-timing'};
+     $config{'stagestats'} = '--stagestats' if $options{'makefile-timing'};
+diff --git a/rakudo/tools/build/Makefile-common.in b/rakudo/tools/build/Makefile-common.in
+index f43f455..bb0a52e 100644
+--- a/rakudo/tools/build/Makefile-common.in
++++ b/rakudo/tools/build/Makefile-common.in
+@@ -8,6 +8,7 @@ CP      = $(PERL) -MExtUtils::Command -e cp
+ RM_F    = $(PERL) -MExtUtils::Command -e rm_f
+ RM_RF   = $(PERL) -MExtUtils::Command -e rm_rf
+ 
++SYSROOT= @sysroot@
+ PREFIX = @prefix@
+ PERL6_LANG_DIR = $(PREFIX)/share/perl6
+ 
+diff --git a/rakudo/tools/lib/NQP/Configure.pm b/rakudo/tools/lib/NQP/Configure.pm
+index f4e8974..d297f61 100644
+--- a/rakudo/tools/lib/NQP/Configure.pm
++++ b/rakudo/tools/lib/NQP/Configure.pm
+@@ -3,6 +3,7 @@ use strict;
+ use warnings;
+ use Cwd;
+ use File::Copy qw(copy);
++use File::Spec qw();
+ 
+ use base qw(Exporter);
+ our @EXPORT_OK = qw(sorry slurp system_or_die
+@@ -214,6 +215,7 @@ sub gen_nqp {
+     my $gen_nqp     = $options{'gen-nqp'};
+     my $gen_moar    = $options{'gen-moar'};
+     my $prefix      = $options{'prefix'} || cwd().'/install';
++    my $sdkroot     = $options{'sdkroot'} || '';
+     my $startdir    = cwd();
+     my $git_protocol = $options{'git-protocol'} // 'https';
+     my @moar_options = @{ $options{'moar-option'} // [] };
+@@ -223,7 +225,7 @@ sub gen_nqp {
+     for my $b (qw/jvm moar/) {
+         if ($backends =~ /$b/rakudo/) {
+             my $postfix = substr $b, 0, 1;
+-            my $bin = "$prefix/bin/nqp-$postfix$bat";
++            my $bin = File::Spec->catfile( $sdkroot, $prefix, 'bin', "nqp-$postfix$bat" );
+             $impls{$b}{bin} = $bin;
+             my %c = read_config($bin);
+             my $nqp_have = $c{'nqp::version'} || '';
+@@ -289,13 +291,14 @@ sub gen_moar {
+     my %options  = @_;
+ 
+     my $prefix     = $options{'prefix'} || cwd()."/install";
++    my $sdkroot    = $options{'sdkroot'} || '';
+     my $gen_moar   = $options{'gen-moar'};
+     my @opts       = @{ $options{'moar-option'} || [] };
+     push @opts, "--optimize";
+     my $startdir   = cwd();
+     my $git_protocol = $options{'git-protocol'} || 'https';
+ 
+-    my $moar_exe   = "$prefix/bin/moar$exe";
++    my $moar_exe   = File::Spec->catfile( $sdkroot, $prefix, 'bin', "moar$exe" );
+     my $moar_have  = qx{ $moar_exe --version };
+     if ($moar_have) {
+         $moar_have = $moar_have =~ /version (\S+)/ ? $1 : undef;

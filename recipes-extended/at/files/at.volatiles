@@ -1,0 +1,3 @@
+d root root 1770 /data/.var/spool/at/jobs none
+f root root 0600 /data/.var/spool/at/jobs/.SEQ none
+d root root 1770 /data/.var/spool/at/spool none

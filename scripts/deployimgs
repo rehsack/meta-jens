@@ -1,0 +1,64 @@
+#!/bin/sh
+
+set -e
+set -x
+
+test -n "$APPLY_TS" || exit 1
+test -n "$TARGETS" || exit 1
+
+MACHINES="${MACHINES:-curie bohr}"
+DEPLOY_DIR_IMAGE_BASE="tmp/deploy/images"
+
+. `dirname $0`/algorithms
+
+MANI=""
+MANISPC=""
+IMG_LIST=""
+IMG_SPC=""
+
+for MACHINE in ${MACHINES}
+do
+    #MACHINE=`grep MACHINE conf/local.conf | sed -E -e "s/[^']+'([^']+)'.*/\\1/"`
+    DEPLOY_DIR_IMAGE="${DEPLOY_DIR_IMAGE_BASE}/${MACHINE}"
+
+    SYSIMG_VERSION=${SYSIMG_VERSION:-$(. ${DEPLOY_DIR_IMAGE}/.settings; echo ${SYSIMG_VER})}
+    WANTED_ROOT_DEV=$(. ${DEPLOY_DIR_IMAGE}/.settings; echo ${WANTED_ROOT_DEV})
+    for IMAGE in ${DEPLOY_DIR_IMAGE}/*-${SYSIMG_VERSION}-complete.cpi
+    do
+	SPC=""
+	HASH=""
+	for alg in ${ALGORITHMS}
+	do
+	    HASH="${HASH}${SPC}${alg}=`${alg} "${IMAGE}"`"
+	    SPC=";"
+	done
+	IMAGE=`echo ${IMAGE} | sed -e "s,${DEPLOY_DIR_IMAGE_BASE}/,,"`
+	NAME=`echo ${IMAGE} | sed -e "s,rdm-,," -e "s,-image-${WANTED_ROOT_DEV}-${SYSIMG_VERSION}-complete.cpi,," -e 's,-,+,g'`
+	MANI="${MANI}${MANISPC}\"${NAME}\": \"${IMAGE};${HASH}\""
+	MANISPC=",
+	"
+	IMG_LIST="${IMG_LIST}${IMG_SPC}${IMAGE}"
+	IMG_SPC=" "
+    done
+    IMG_LIST="${IMG_LIST}${IMG_SPC}${MACHINE}/post-flash-${SYSIMG_VERSION}.tar.bz2"
+    IMG_SPC=" "
+done
+
+APPLY_ISO="$APPLY_TS"
+test "x$APPLY_TS" = "xnull" || APPLY_ISO="\"`date -d "${APPLY_TS}" --iso-8601=seconds | sed -e 's/+.*//g'`\""
+
+MANIFEST="{
+    \"${SYSIMG_VERSION}\": {
+        ${MANI},
+        \"apply\": ${APPLY_ISO}
+    }
+}"
+
+# XXX do a rsync instead ...
+for target in ${TARGETS}
+do
+    echo "$MANIFEST" | ssh "${USER}@${target}" "mkdir -p /var/tmp/${SYSIMG_VERSION}-nightly && cat >/var/tmp/${SYSIMG_VERSION}-nightly/manifest.json"
+    (cd ${DEPLOY_DIR_IMAGE_BASE} && tar cf - ${IMG_LIST}) | ssh "${USER}@${target}" "cd /var/tmp/${SYSIMG_VERSION}-nightly/ && tar xf -"
+
+    # ssh "${USER}@${target}" "sudo /opt/pkg/bin/image-import --directory /var/tmp/${SYSIMG_VERSION}-nightly/"
+done

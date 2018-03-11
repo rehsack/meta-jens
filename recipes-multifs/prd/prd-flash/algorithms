@@ -1,0 +1,59 @@
+ALGORITHMS="size md5 rmd160 sha1"
+
+size () {
+    stat -c %s $1
+}
+
+md5 () {
+    openssl dgst -md5 -hex -r $1 | awk '{print $1}'
+}
+
+rmd160 () {
+    openssl dgst -ripemd160 -hex -r $1 | awk '{print $1}'
+}
+
+sha1 () {
+    openssl dgst -sha1 -hex -r $1 | awk '{print $1}'
+}
+
+prove_fail () {
+    echo "Proving $1 fails for $2: $3 != $4" >&2
+    trigger_fail
+}
+
+prove_image () {
+    for a in $ALGORITHMS
+    do
+        S=""
+        K=""
+        for k in ${KERNEL}
+        do
+            K="${K}${S}`$a ${IMAGE_CONTAINER}/${k}`"
+            S=" "
+        done
+        eval "kernel_${a}=\"$K\""
+	A=`echo $a | tr a-z A-Z`
+	test "$(eval echo \$KERNEL_${A})" == "$(eval echo \$kernel_${a})" || prove_fail $k $a $(echo KERNEL_${A}) $(echo kernel_${a})
+    done
+
+    for a in $ALGORITHMS
+    do
+	A=`echo $a | tr a-z A-Z`
+	c=`$a ${IMAGE_CONTAINER}/${UBOOT_BIN}`
+	test "$(eval echo \$UBOOT_${A})" == "$c" || prove_fail $UBOOT_BIN $a $c
+    done
+
+    for a in $ALGORITHMS
+    do
+	A=`echo $a | tr a-z A-Z`
+	c=`$a ${IMAGE_CONTAINER}/${ROOTIMG}`
+	test "$(eval echo \$ROOTIMG_${A})" == "$c" || prove_fail $ROOTIMG $a $c
+    done
+
+    for a in $ALGORITHMS
+    do
+	A=`echo $a | tr a-z A-Z`
+	c=`$a ${IMAGE_CONTAINER}/${RECOVERIMG}`
+	test "$(eval echo \$RECOVERIMG_${A})" == "$c" || prove_fail $RECOVERIMG $a $c
+    done
+}

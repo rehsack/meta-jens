@@ -1,0 +1,28 @@
+#!/bin/sh
+
+die() {
+    echo "$@" >&2
+    exit 1
+}
+
+test -n "$1" || die "$0 <remote>"
+test -d .git && die "Run $0 in sources"
+
+REMOTE="$1"
+
+S=`pwd`
+set -x
+
+for r in *
+do
+    test -d ${S}/$r/.git || continue
+    echo $r
+    cd ${S}/$r
+    test "`git remote show | grep ${REMOTE} | wc -l`" -eq 1 || continue
+    b=`git branch -l | awk '{print $2}'`
+    git stash
+    git pull --rebase "${REMOTE}" $b
+    test "x${REMOTE}" != "xorigin" && git push origin $b
+    test "x${REMOTE}" != "xorigin" -a "x${REMOTE}" != "xrdm" -a "`git remote show | grep rdm | wc -l`" -eq 1 && git push rdm $b
+    git stash pop
+done

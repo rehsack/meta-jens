@@ -1,0 +1,11 @@
+--- src/bootlogd.c
++++ src/bootlogd.c
+@@ -58,7 +58,7 @@
+ 
+ #define LOGFILE	"/var/log/boot"
+ 
+-char ringbuf[32768];
++char ringbuf[262144];
+ char *endptr = ringbuf + sizeof(ringbuf);
+ char *inptr  = ringbuf;
+ char *outptr = ringbuf;

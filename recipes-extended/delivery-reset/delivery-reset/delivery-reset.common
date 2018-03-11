@@ -1,0 +1,37 @@
+DR_GUESS_WHAT="all|etc|network|home|homepilot|kodi|mediaplayer|qbrqry"
+
+delivery_reset_for_all () {
+    echo "/data/.shadow/" >> "${CLEANUP_SPEC}"
+}
+
+delivery_reset_for_etc () {
+    echo "/data/.shadow/.etc" >> "${CLEANUP_SPEC}"
+}
+
+delivery_reset_for_network () {
+    echo "/data/.shadow/.etc/ethtool-config
+/data/.shadow/.etc/wpa_supplicant.enabled
+/data/.shadow/.etc/wpa_supplicant.conf
+/data/.shadow/.etc/network/interfaces
+" >> "${CLEANUP_SPEC}"
+}
+
+delivery_reset_for_home () {
+    echo "/data/.shadow/.home" >> "${CLEANUP_SPEC}"
+}
+
+delivery_reset_for_homepilot () {
+    echo "/data/.shadow/.home/homepilot" >> "${CLEANUP_SPEC}"
+}
+
+delivery_reset_for_kodi () {
+    echo "/data/.shadow/.home/xbmc" >> "${CLEANUP_SPEC}"
+}
+
+delivery_reset_for_mediaplayer () {
+    delivery_reset_for_kodi
+}
+
+delivery_reset_for_qbrqry () {
+    echo "/data/.shadow/.home/qbrqry" >> "${CLEANUP_SPEC}"
+}
