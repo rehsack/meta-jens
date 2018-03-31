@@ -1,5 +1,3 @@
-ALGORITHMS="size md5 rmd160 sha1"
-
 size () {
     du -b $1 | awk '{print $1}'
 }

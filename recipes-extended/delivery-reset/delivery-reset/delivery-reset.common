@@ -1,4 +1,4 @@
-DR_GUESS_WHAT="all|etc|network|home|homepilot|kodi|mediaplayer|qbrqry"
+DR_GUESS_WHAT="all|etc|network|home|qbrqry"
 
 delivery_reset_for_all () {
     echo "/data/.shadow/" >> "${CLEANUP_SPEC}"
@@ -18,18 +18,6 @@ delivery_reset_for_network () {
 
 delivery_reset_for_home () {
     echo "/data/.shadow/.home" >> "${CLEANUP_SPEC}"
-}
-
-delivery_reset_for_homepilot () {
-    echo "/data/.shadow/.home/homepilot" >> "${CLEANUP_SPEC}"
-}
-
-delivery_reset_for_kodi () {
-    echo "/data/.shadow/.home/xbmc" >> "${CLEANUP_SPEC}"
-}
-
-delivery_reset_for_mediaplayer () {
-    delivery_reset_for_kodi
 }
 
 delivery_reset_for_qbrqry () {

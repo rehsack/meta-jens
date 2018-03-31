@@ -10,8 +10,8 @@
 
 set -x
 
-logger -s "Prove being the one and only ..."
-test "${FLOCKER}" != "@ARGV0@" && exec env FLOCKER="@ARGV0@" flock -en "@ARGV0@" "@ARGV0@" || :
+@NFS_FLASH@logger -s "Prove being the one and only ..."
+@NFS_FLASH@test "${FLOCKER}" != "@ARGV0@" && exec env FLOCKER="@ARGV0@" flock -en "@ARGV0@" "@ARGV0@" || :
 logger -s "Starting flash ..."
 
 # use last image container
@@ -80,7 +80,10 @@ then
 
     if require_update_uboot
     then
-        flash_uboot
+        test -n "${PRIMARY_SPL_OFFSET}"     && flash_spl_primary
+        test -n "${SECONDARY_SPL_OFFSET}"   && flash_spl_secondary
+        test -n "${PRIMARY_UBOOT_OFFSET}"   && flash_uboot_primary
+        test -n "${SECONDARY_UBOOT_OFFSET}" && flash_uboot_secondary
         uboot_setenv
     fi
     flash_rootfs
@@ -90,7 +93,7 @@ then
 
     mkdir -p ${DATA_MNT}/tmp
     chmod 01777 ${DATA_MNT}/tmp
-    (cd ${DATA_MNT} && mkdir -p ${UNION_SHADOWS})
+    (cd ${DATA_MNT} && mkdir -p ${OVERLAY_SHADOWS})
 
     declare -f post_flash >/dev/null && post_flash
 
@@ -150,7 +153,11 @@ then
 	if require_update_uboot
 	then
 	    logger "Going to extract u-boot"
-	    tar xjf "${IMAGE_CONTAINER}" -O ${UBOOT_BIN} | update_uboot
+	    
+	    test -n "${PRIMARY_SPL_OFFSET}"     && (tar xjf "${IMAGE_CONTAINER}" -O ${SPL_BIN} | update_spl_primary)
+	    test -n "${SECONDARY_SPL_OFFSET}"   && (tar xjf "${IMAGE_CONTAINER}" -O ${SPL_BIN} | update_spl_secondary)
+	    test -n "${PRIMARY_UBOOT_OFFSET}"   && (tar xjf "${IMAGE_CONTAINER}" -O ${UBOOT_BIN}  | update_uboot_primary)
+	    test -n "${SECONDARY_UBOOT_OFFSET}" && (tar xjf "${IMAGE_CONTAINER}" -O ${UBOOT_BIN}  | update_uboot_secondary)
 	    uboot_setenv
 	else
 	    logger "u-boot is fine, remains untouched"
@@ -175,7 +182,7 @@ then
 	logger "Sanitize kernel"
 	mount /boot
 	(cd /boot && eval ${KERNEL_SANITIZE})
-	(cd /data && mkdir -p ${UNION_SHADOWS})
+	(cd /data && mkdir -p ${OVERLAY_SHADOWS})
 
 	touch /etc/overlay.mrproper
 

@@ -7,18 +7,16 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI = "file://date-set.sh"
 
-inherit update-rc.d
+DEPENDS += " update-rc.d-native"
 
 ALTERNATIVE_PRIORITY = "100"
 ALTERNATIVE_LINK_NAME[date_set] = "${D}${sysconfdir}/init.d/date-set"
 
 do_install () {
-	#create init.d directory
-	install -d ${D}${sysconfdir}/init.d/
+    #create init.d directory
+    install -d ${D}${sysconfdir}/init.d/
 
-	#install init.d script and make it executable
-	install -m 0755 ${WORKDIR}/date-set.sh ${D}${sysconfdir}/init.d/date-set
+    #install init.d script and make it executable
+    install -m 0755 ${WORKDIR}/date-set.sh ${D}${sysconfdir}/init.d/date-set
+    update-rc.d -r ${D} date-set start 02 S .
 }
-
-INITSCRIPT_NAME = "date-set"
-INITSCRIPT_PARAMS = "start 02 S ."

@@ -1,1 +1,2 @@
-__oe_prepend_path "$(readlink -f $OEROOT)/meta-jens/scripts"
+__oe_prepend_path "$(readlink -f $OEROOT/..)/meta-jens/scripts"
+__oe_append_extrawhite "VLAN_GRP"

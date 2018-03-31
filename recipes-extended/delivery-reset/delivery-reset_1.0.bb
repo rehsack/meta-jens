@@ -1,8 +1,8 @@
 # Copyright (C) 2016 Jens Rehsack <sno@netbsd.org>
 # Released under the LGPLv2 license
 
-DESCRIPTION = "HomePilot Delivery Reset"
-HOMEPAGE = "http://www.homepilot.de/"
+DESCRIPTION = "Delivery Reset"
+HOMEPAGE = "http://act.yapc.eu/gpw2018/index.html"
 LICENSE = "LGPLv2.1"
 DEPENDS_append = " update-rc.d-native"
 

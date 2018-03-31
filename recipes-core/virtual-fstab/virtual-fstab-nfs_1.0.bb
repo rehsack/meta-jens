@@ -10,4 +10,6 @@ SRC_URI = "\
 do_compile () {
     set -x
     cp ${WORKDIR}/fstab.nfs ${B}/fstab.${WANTED_ROOT_DEV}
+    sed -i -e "s,@VLAN_GRP@,${VLAN_GRP},g" -e "s,@overlay@,${OVERLAY},g" \
+        ${B}/fstab.${WANTED_ROOT_DEV}
 }

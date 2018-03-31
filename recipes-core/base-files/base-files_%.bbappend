@@ -1,6 +1,6 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/base-files:"
 
-hostname := "homepilot"
+hostname := "gpw2018-bbb"
 volatiles := ""
 
 DEPENDS_append = "virtual-fstab-${WANTED_ROOT_DEV}"

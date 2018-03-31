@@ -7,15 +7,13 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI = "file://boot-fsck.sh"
 
-inherit update-rc.d
+DEPENDS += " update-rc.d-native"
 
 do_install () {
-	#create init.d directory
-	install -d ${D}${sysconfdir}/init.d/
-	
-	#install init.d script and make it executable
-	install -m 0755 ${WORKDIR}/boot-fsck.sh ${D}${sysconfdir}/init.d/boot-fsck
+    #create init.d directory
+    install -d ${D}${sysconfdir}/init.d/
+    
+    #install init.d script and make it executable
+    install -m 0755 ${WORKDIR}/boot-fsck.sh ${D}${sysconfdir}/init.d/boot-fsck
+    update-rc.d -r ${D} boot-fsck start 02 S .
 }
-
-INITSCRIPT_NAME = "boot-fsck"
-INITSCRIPT_PARAMS = "start 02 S ."

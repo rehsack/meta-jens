@@ -6,7 +6,7 @@ set -x
 test -n "$APPLY_TS" || exit 1
 test -n "$TARGETS" || exit 1
 
-MACHINES="${MACHINES:-curie bohr}"
+MACHINES="${MACHINES:-wendy roli}"
 DEPLOY_DIR_IMAGE_BASE="tmp/deploy/images"
 
 . `dirname $0`/algorithms

@@ -6,7 +6,7 @@ DESCRIPTION = "Dedicate, MACHINE dependend provider for fstab by WANTED_ROOT_DEV
 LICENSE = "GPL-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-2.0;md5=801f80980d171dd6425610833a22dbe6"
 
-PACKAGE_ARCH = "${MACHINE_ARCH}"
+PACKAGE_ARCH = "${MACHINE_ARCH}-${WANTED_ROOT_DEV}"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
@@ -17,8 +17,6 @@ do_compile () {
     cp ${WORKDIR}/fstab ${B}/fstab.${WANTED_ROOT_DEV}
     sed -i -e "s,@DEV_PFX@,${DEV_PFX},g" \
          -e "s,@overlay@,${OVERLAY},g" -e "s,@overlayfs@,${OVERLAYFS},g" -e "s,@unionfs@,${UNIONFS},g" \
-        ${B}/fstab.${WANTED_ROOT_DEV}
-    test "${MACHINE}" = "bohr" -a "${WANTED_ROOT_DEV}" = "nand" && sed -i -e "s,ext[24],ubifs,g" \
         ${B}/fstab.${WANTED_ROOT_DEV}
     :
 }

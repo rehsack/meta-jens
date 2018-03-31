@@ -1,3 +1,6 @@
+# Copyright (C) 2015-2018 Jens Rehsack <sno@netbsd.org>
+# Released under the MIT license (see COPYING.MIT for the terms)
+
 DESCRIPTION = "Initscipts for overlay filesystems"
 OPN := "${PN}"
 PN = "${OPN}-${WANTED_ROOT_DEV}"
@@ -6,6 +9,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${OPN}:"
 LICENSE = "GPL-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-2.0;md5=801f80980d171dd6425610833a22dbe6"
 
+DEPENDS_append = " update-rc.d-native"
 RDEPENDS_${PN} = "attr"
 
 inherit rootdev-check
@@ -18,8 +22,6 @@ SRC_URI = "file://mountoverlay.sh \
 	file://default-cleanoverlay.conf \
 	file://umountoverlay.sh \
 "
-
-DEPENDS_append = " update-rc.d-native"
 
 do_compile () {
     sed -i -e "s/@ROOT_DEV_NAME[@]/${ROOT_DEV_NAME}/g" -e "s/@ROOT_DEV_SEP[@]/${ROOT_DEV_SEP}/g" -e "s/@ROOT_DEV_TYPE[@]/${ROOT_DEV_TYPE}/g" \

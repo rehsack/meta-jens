@@ -8,7 +8,7 @@ HOMEPAGE = "http://untroubled.org/daemontools-encore/"
 LICENSE = "PD"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/PD;md5=b3597d12946881e13cb3b548d1173851"
 
-inherit djbware update-rc.d useradd
+inherit djbware useradd
 
 #FILESEXTRAPATHS_prepend := "${THISDIR}/${PV}-${PV}:"
 
@@ -23,11 +23,10 @@ SRC_URI = "git://github.com/bruceg/daemontools-encore.git \
 	   file://svscanboot-target-fs-adoptions.patch \
           "
 
-INITSCRIPT_NAME = "init-daemontools-encore.sh"
-INITSCRIPT_PARAMS = "start 30 3 5 . stop 20 0 1 6 ."
-
 USERADD_PACKAGES = "${PN}"
 GROUPADD_PARAM_${PN} = "-r svcctrl"
+
+DEPENDS += " update-rc.d-native"
 
 do_configure_append () {
     (cd ${S} && ./makemake)
@@ -51,7 +50,9 @@ do_install () {
 
     install -d ${D}${sysconfdir}/init.d
     mv ${D}${bindir}/svscanboot ${D}${sysconfdir}/init.d/
-    install -m 0755 ${WORKDIR}/init-daemontools-encore.sh ${D}${sysconfdir}/init.d/
+    install -m 0755 ${WORKDIR}/init-daemontools-encore.sh ${D}${sysconfdir}/init.d/init-daemontools-encore
+
+    update-rc.d -r ${D} init-daemontools-encore start 30 3 5 . stop 20 0 1 6 .
 
     # prepare for installing base-dir for services
     install -d 0755 ${D}${sysconfdir}/daemontools/service

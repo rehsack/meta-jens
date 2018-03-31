@@ -1,10 +1,10 @@
 prepare_device () {
-    BOOT_SPACE="8192"
-    IMAGE_ROOTFS_ALIGNMENT="4096"
+    IMAGE_ROOTFS_ALIGNMENT="4096" # 4 MB
+    : ${BOOTLOADER_RESERVED_SPACE:=$(expr ${IMAGE_ROOTFS_ALIGNMENT} \* 2)} # is in 512 blocks
 
     BOOTFS_SIZE=$(expr 1024 \* 32)
 
-    SDCARD_SIZE=`fdisk -l $DEVICE_PATH | grep "Disk $DEVICE_PATH" | awk '{print $5}'`
+    SDCARD_SIZE=`/sbin/fdisk -l $DEVICE_PATH | /bin/grep "Disk $DEVICE_PATH" | /usr/bin/awk '{print $5}'`
     SDCARD_SIZE=$(expr $SDCARD_SIZE \/ 1024)
 
     ROOTFS_SIZE=$(expr 1024 \* 512)
@@ -18,7 +18,7 @@ prepare_device () {
     BOOT_SPACE_ALIGNED=$(expr ${BOOTFS_SIZE} + ${IMAGE_ROOTFS_ALIGNMENT} - 1)
     BOOT_SPACE_ALIGNED=$(expr ${BOOT_SPACE_ALIGNED} - ${BOOT_SPACE_ALIGNED} % ${IMAGE_ROOTFS_ALIGNMENT})
 
-    BOOT_SPACE_START=${IMAGE_ROOTFS_ALIGNMENT}
+    BOOT_SPACE_START=$(expr ${BOOTLOADER_RESERVED_SPACE} \/ 2)
     BOOT_SPACE_END=$(expr ${IMAGE_ROOTFS_ALIGNMENT} \+ ${BOOT_SPACE_ALIGNED})
 
     ROOTFS_SIZE_ALIGNED=$(expr ${ROOTFS_SIZE} + ${IMAGE_ROOTFS_ALIGNMENT} - 1)
@@ -52,8 +52,20 @@ prepare_device () {
     mount ${DEVICE_PREFIX}4 ${DATA_MNT}
 }
 
-flash_uboot () {
-    dd if=${IMAGE_CONTAINER}/${UBOOT_BIN} of=${DEVICE_PATH} seek=2 skip=${UBOOT_PADDING} bs=512
+flash_spl_primary () {
+    dd if=${IMAGE_CONTAINER}/${SPL_BIN} of=${DEVICE_PATH} seek=${PRIMARY_SPL_OFFSET} skip=${SPL_PADDING} bs=512
+}
+
+flash_spl_secondary () {
+    dd if=${IMAGE_CONTAINER}/${SPL_BIN} of=${DEVICE_PATH} seek=${SECONDARY_SPL_OFFSET} skip=${SPL_PADDING} bs=512
+}
+
+flash_uboot_primary () {
+    dd if=${IMAGE_CONTAINER}/${UBOOT_BIN} of=${DEVICE_PATH} seek=${PRIMARY_UBOOT_OFFSET} skip=${UBOOT_PADDING} bs=512
+}
+
+flash_uboot_secondary () {
+    dd if=${IMAGE_CONTAINER}/${UBOOT_BIN} of=${DEVICE_PATH} seek=${SECONDARY_UBOOT_OFFSET} skip=${UBOOT_PADDING} bs=512
 }
 
 flash_rootfs () {
@@ -80,15 +92,27 @@ require_update_uboot () {
     return 0
 }
 
-update_uboot () {
-    dd of=${DEVICE_PATH} seek=2 skip=${UBOOT_PADDING} bs=512
+update_spl_primary () {
+    dd of=${DEVICE_PATH} seek=${PRIMARY_SPL_OFFSET} skip=${UBOOT_PADDING} bs=512
+}
+
+update_spl_secondary () {
+    dd of=${DEVICE_PATH} seek=${SECONDARY_SPL_OFFSET} skip=${UBOOT_PADDING} bs=512
+}
+
+update_uboot_primary () {
+    dd of=${DEVICE_PATH} seek=${PRIMARY_UBOOT_OFFSET} skip=${UBOOT_PADDING} bs=512
+}
+
+update_uboot_secondary () {
+    dd of=${DEVICE_PATH} seek=${SECONDARY_UBOOT_OFFSET} skip=${UBOOT_PADDING} bs=512
 }
 
 uboot_setenv () {
     # XXX u-boot-fw_utils 2016.01 with -c /path/to/config changes everything, here
     if test "@INTERNAL_ROOT_DEV@" = "${WANTED_ROOT_DEV}"
     then
-	blkdiscard ${DEVICE_PATH} --offset 0x80000 --length 0x2000
+	#blkdiscard ${DEVICE_PATH} --offset 0x80000 --length 0x2000
 	fw_setenv sysimg_version ${SYSIMG_VER}
     fi
 }
