@@ -1,7 +1,7 @@
 # Copyright (C) 2018 Jens Rehsack <sno@netbsd.org>
 # Released under the MIT license (see COPYING.MIT for the terms)
 
-SUMMARY = "GPW Perl on Embedded Workshop Minimal updatable image"
+SUMMARY = "GPW Perl on Embedded Workshop Minimal Updatable Image"
 LICENSE = "MIT"
 PR="r0"
 
@@ -19,8 +19,8 @@ EXTRA_IMAGE_FEATURES += " \
 "
 
 IMAGE_INSTALL += " \
-	${CORE_IMAGE_BASE_INSTALL} \
-	${UPDATE_INSTALL} \
+    ${CORE_IMAGE_BASE_INSTALL} \
+    ${UPDATE_INSTALL} \
 "
 
 export IMAGE_BASENAME = "updatable-app-image"
