@@ -1,7 +1,7 @@
-From 2663232d76efbf0959deaea9ec10856646e5aba0 Mon Sep 17 00:00:00 2001
+From 9cb3dc8ab7401e828624172f09481f1eae9c231e Mon Sep 17 00:00:00 2001
 From: Andreas Oberritter <obi@opendreambox.org>
 Date: Wed, 20 Mar 2013 14:31:25 +0100
-Subject: [PATCH] udhcpc: obtain hostname from OS by default
+Subject: [PATCH 3/3] udhcpc: obtain hostname from OS by default
 
 Doesn't require the 'hostname' option in /etc/network/interfaces, and thus
 makes udhcpc behave like other clients.
@@ -13,10 +13,10 @@ Signed-off-by: Jens Rehsack <sno@netbsd.org>
  1 file changed, 12 insertions(+)
 
 diff --git a/networking/udhcp/dhcpc.c b/networking/udhcp/dhcpc.c
-index fae7e17..2e3b84b 100644
+index bdd5222d2..dd412d049 100644
 --- a/networking/udhcp/dhcpc.c
 +++ b/networking/udhcp/dhcpc.c
-@@ -1405,6 +1405,18 @@ int udhcpc_main(int argc UNUSED_PARAM, char **argv)
+@@ -1393,6 +1393,18 @@ int udhcpc_main(int argc UNUSED_PARAM, char **argv)
  		logmode |= LOGMODE_SYSLOG;
  	}
  
@@ -34,7 +34,7 @@ index fae7e17..2e3b84b 100644
 +
  	/* Make sure fd 0,1,2 are open */
  	bb_sanitize_stdio();
- 	/* Equivalent of doing a fflush after every \n */
+ 	/* Create pidfile */
 -- 
-2.5.4 (Apple Git-61)
+2.15.2 (Apple Git-101.1)
 

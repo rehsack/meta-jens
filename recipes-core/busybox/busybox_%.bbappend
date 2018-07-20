@@ -26,7 +26,8 @@ SRC_URI += "\
     file://arping.cfg \
     \
     file://0001-ifupdown-improve-debian-compatibility-for-mapping.patch \
-    file://0001-udhcpc-obtain-hostname-from-OS-by-default.patch \
+    file://0002-udhcpc-calculate-broadcast-address-if-not-given-by-s.patch \
+    file://0003-udhcpc-obtain-hostname-from-OS-by-default.patch \
 "
 
 SRC_URI += "${@bb.utils.contains("IMAGE_FEATURES", 'debug-tweaks', ' file://procstat.cfg ', '', d )}"
