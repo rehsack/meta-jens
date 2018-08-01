@@ -1,0 +1,23 @@
+From 79008424803ec4c6cefd1a896c24f3fdf10b95f0 Mon Sep 17 00:00:00 2001
+From: Jens Rehsack <sno@netbsd.org>
+Date: Mon, 30 Jul 2018 14:05:22 +0200
+Subject: [PATCH 1/2] acinclude.m4: avoid removal on autoreconf
+
+A typical run of `autoreconf -i` also runs aclocal. Since
+aclocal.m4 is meant as a caching file for combining several
+includes, it's unreasonalble to distribute a file using
+that name.
+
+Signed-off-by: Jens Rehsack <sno@netbsd.org>
+---
+ aclocal.m4 => acinclude.m4 | 0
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ rename aclocal.m4 => acinclude.m4 (100%)
+
+diff --git a/aclocal.m4 b/acinclude.m4
+similarity index 100%
+rename from aclocal.m4
+rename to acinclude.m4
+-- 
+2.15.2 (Apple Git-101.1)
+
