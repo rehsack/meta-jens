@@ -23,7 +23,7 @@ DEPENDS += " update-rc.d-native"
 RDEPENDS_${PN}_append = "\
     perl-module-version \
     util-linux \
-    u-boot-fw-utils \
+    ${@bb.utils.contains('PREFERRED_PROVIDER_virtual/bootloader', 'u-boot', 'u-boot-fw-utils', '', d) } \
 "
 
 def all_root_dev_names (d) :
