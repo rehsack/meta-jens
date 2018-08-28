@@ -25,7 +25,6 @@ UPDATE_BASE_INSTALL = "\
 	nginx \
 	statgrab \
 	saidar \
-	crda \
 	logrotate \
 	boot-fsck \
 	initoverlay-${WANTED_ROOT_DEV} \
