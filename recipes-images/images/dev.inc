@@ -18,6 +18,8 @@ DEV_INSTALL = "\
 	valgrind \
 	"
 
+DEV_INSTALL_append = "${@bb.utils.contains("MACHINE_FEATURES", "efi", "efibootmgr", "", d)}"
+
 inherit rootdev-check
 
 CONFLICT_ROOT_DEVS = "${INTERNAL_ROOT_DEV} nfs"
