@@ -25,7 +25,6 @@ UPDATE_BASE_INSTALL = "\
 	nginx \
 	statgrab \
 	saidar \
-	logrotate \
 	boot-fsck \
 	initoverlay-${WANTED_ROOT_DEV} \
 	udev-extraconf-mount-blacklist-${WANTED_ROOT_DEV} \

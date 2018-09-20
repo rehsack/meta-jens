@@ -5,6 +5,8 @@ SRC_URI_append = "\
     file://nginx-varlib.volatiles \
 "
 
+RDEPENDS_${PN} += "logrotate"
+
 do_install_append () {
 	install -d ${D}${localstatedir}/lib/nginx/
 	install -d ${D}${sysconfdir}/default/volatiles

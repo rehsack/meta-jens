@@ -35,6 +35,7 @@ RDEPENDS_${PN} += "digest-md6-perl"
 RDEPENDS_${PN} += "digest-sha-perl"
 RDEPENDS_${PN} += "digest-sha3-perl"
 RDEPENDS_${PN} += "daemontools"
+RDEPENDS_${PN} += "logrotate"
 RDEPENDS_${PN} += "system-image"
 
 S = "${WORKDIR}/git"
