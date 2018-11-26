@@ -29,7 +29,7 @@ do
     echo ${IMAGES} | fgrep -e "${RECOVERY_IMAGE}"
     if [ "$?" != "0" ]
     then
-	IMAGES="${IMAGES} ${RECOVERY_IMAGE}"
+        IMAGES="${IMAGES} ${RECOVERY_IMAGE}"
     fi
 done
 
@@ -66,18 +66,25 @@ if [ -n "${KERNEL_DEVICE_TREE}" ]
 then
     for DTS_FILE in ${KERNEL_DEVICE_TREE}
     do
-	DTS_BASE_NAME=`basename ${DTS_FILE} | awk -F "." '{print $1}'`
-	if [ -e "${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${DTS_BASE_NAME}.dtb" ]
-	then
-	    bin_for_dtb="`readlink ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${DTS_BASE_NAME}.dtb`"
-	    kernel_bin_for_dtb="`echo ${bin_for_dtb} | sed "s,$DTS_BASE_NAME,${MACHINE},g;s,\.dtb$,.bin,g"`"
-	    if [ $kernel_bin = $kernel_bin_for_dtb ]
-	    then
-		KERNEL_FILES="${KERNEL_FILES} ${KERNEL_IMAGETYPE}-${DTS_BASE_NAME}.dtb ${bin_for_dtb}"
-		KERNEL="${KERNEL} ${bin_for_dtb}"
-		KERNEL_PREPARE="${KERNEL_PREPARE} && mv ${bin_for_dtb} ${DTS_BASE_NAME}.dtb"
-	    fi
-	fi
+        DTS_BASE_NAME=`basename ${DTS_FILE} | awk -F "." '{print $1}'`
+        if [ -e "${DEPLOY_DIR_IMAGE}/${DTS_BASE_NAME}.dtb" ]
+        then
+            dtb_filename="${DTS_BASE_NAME}.dtb"
+            bin_for_dtb="`readlink ${DEPLOY_DIR_IMAGE}/${dtb_filename}`"
+            kernel_bin_for_dtb="`echo ${bin_for_dtb} | sed "s,$DTS_BASE_NAME,zImage,g;s,\.dtb$,.bin,g"`"
+        elif [ -e "${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${DTS_BASE_NAME}.dtb" ]
+        then
+            dtb_filename="${KERNEL_IMAGETYPE}-${DTS_BASE_NAME}.dtb"
+            bin_for_dtb="`readlink ${DEPLOY_DIR_IMAGE}/${dtb_filename}`"
+            kernel_bin_for_dtb="`echo ${bin_for_dtb} | sed "s,$DTS_BASE_NAME,${MACHINE},g;s,\.dtb$,.bin,g"`"
+        fi
+
+        if [ "$kernel_bin" = "$kernel_bin_for_dtb" ]
+        then
+            KERNEL_FILES="${KERNEL_FILES} ${dtb_filename} ${bin_for_dtb}"
+            KERNEL="${KERNEL} ${bin_for_dtb}"
+            KERNEL_PREPARE="${KERNEL_PREPARE} && mv ${bin_for_dtb} ${DTS_BASE_NAME}.dtb"
+        fi
     done
 fi
 
