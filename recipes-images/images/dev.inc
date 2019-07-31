@@ -9,6 +9,7 @@ EXTRA_IMAGE_FEATURES_dev = "tools-debug \
 "
 
 DEV_INSTALL = "\
+	packagegroup-core-buildessential \
 	ltrace \
 	systemtap \
 	systemtap-uprobes \
