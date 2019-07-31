@@ -1,4 +1,4 @@
-From 29648992870211d28a52631216ea65291c48ea63 Mon Sep 17 00:00:00 2001
+From 38992a2c5bcfe677c3accb79711226d9cd3cfce4 Mon Sep 17 00:00:00 2001
 From: Jens Rehsack <sno@netbsd.org>
 Date: Thu, 25 Feb 2016 10:07:31 +0100
 Subject: [PATCH 1/3] ifupdown: improve debian compatibility for mapping
@@ -13,7 +13,7 @@ Signed-off-by: Jens Rehsack <sno@netbsd.org>
  1 file changed, 19 insertions(+), 4 deletions(-)
 
 diff --git a/networking/ifupdown.c b/networking/ifupdown.c
-index 5481134e5..de3e42639 100644
+index 60ceb5a1f..f483b5765 100644
 --- a/networking/ifupdown.c
 +++ b/networking/ifupdown.c
 @@ -183,7 +183,10 @@ struct mapping_defn_t {
@@ -36,7 +36,7 @@ index 5481134e5..de3e42639 100644
  				currmap->match[currmap->n_matches++] = xstrdup(first_word);
  			}
  			/*currmap->n_mappings = 0;*/
-@@ -1054,8 +1058,13 @@ static struct interfaces_file_t *read_interfaces(const char *filename, struct in
+@@ -1070,8 +1074,13 @@ static struct interfaces_file_t *read_interfaces(const char *filename, struct in
  						bb_error_msg_and_die("duplicate script in mapping \"%s\"", buf);
  					currmap->script = xstrdup(next_word(&rest_of_line));
  				} else if (strcmp(first_word, "map") == 0) {
@@ -51,7 +51,7 @@ index 5481134e5..de3e42639 100644
  					currmap->n_mappings++;
  				} else {
  					bb_error_msg_and_die("misplaced option \"%s\"", buf);
-@@ -1251,7 +1260,7 @@ static char *run_mapping(char *physical, struct mapping_defn_t *map)
+@@ -1273,7 +1282,7 @@ static char *run_mapping(char *physical, struct mapping_defn_t *map)
  
  	/* Write mappings to stdin of mapping script. */
  	for (i = 0; i < map->n_mappings; i++) {
@@ -60,7 +60,7 @@ index 5481134e5..de3e42639 100644
  	}
  	fclose(in);
  	safe_waitpid(pid, &status, 0);
-@@ -1423,7 +1432,13 @@ int ifupdown_main(int argc UNUSED_PARAM, char **argv)
+@@ -1445,7 +1454,13 @@ int ifupdown_main(int argc UNUSED_PARAM, char **argv)
  				}
  			} else {
  				/* ifdown */
@@ -76,5 +76,5 @@ index 5481134e5..de3e42639 100644
  					goto next;
  				}
 -- 
-2.15.2 (Apple Git-101.1)
+2.20.1 (Apple Git-117)
 

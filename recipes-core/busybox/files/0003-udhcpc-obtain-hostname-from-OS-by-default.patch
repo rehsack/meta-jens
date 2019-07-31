@@ -1,40 +1,64 @@
-From 9cb3dc8ab7401e828624172f09481f1eae9c231e Mon Sep 17 00:00:00 2001
+From 0cf511c51b648fe8369f9ffcbfaf8830b0979bc9 Mon Sep 17 00:00:00 2001
 From: Andreas Oberritter <obi@opendreambox.org>
 Date: Wed, 20 Mar 2013 14:31:25 +0100
 Subject: [PATCH 3/3] udhcpc: obtain hostname from OS by default
 
 Doesn't require the 'hostname' option in /etc/network/interfaces, and thus
-makes udhcpc behave like other clients.
+makes udhcpc behave like other clients in both (IPv4, IPv6) protocols.
 
 Signed-off-by: Andreas Oberritter <obi@opendreambox.org>
 Signed-off-by: Jens Rehsack <sno@netbsd.org>
 ---
- networking/udhcp/dhcpc.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ networking/udhcp/d6_dhcpc.c | 12 ++++++++++++
+ networking/udhcp/dhcpc.c    | 12 ++++++++++++
+ 2 files changed, 24 insertions(+)
 
-diff --git a/networking/udhcp/dhcpc.c b/networking/udhcp/dhcpc.c
-index bdd5222d2..dd412d049 100644
---- a/networking/udhcp/dhcpc.c
-+++ b/networking/udhcp/dhcpc.c
-@@ -1393,6 +1393,18 @@ int udhcpc_main(int argc UNUSED_PARAM, char **argv)
+diff --git a/networking/udhcp/d6_dhcpc.c b/networking/udhcp/d6_dhcpc.c
+index 9d8e17c51..a96e61d47 100644
+--- a/networking/udhcp/d6_dhcpc.c
++++ b/networking/udhcp/d6_dhcpc.c
+@@ -1272,6 +1272,18 @@ int udhcpc6_main(int argc UNUSED_PARAM, char **argv)
  		logmode |= LOGMODE_SYSLOG;
  	}
  
 +	/* try to get hostname from OS */
-+	if (!client_config.hostname) {
++	if (!client_data.hostname) {
 +		char *hostname = safe_gethostname();
 +		/*
 +		 * Tito's safe_gethostname is finally a "safe_visible_gethostname",
 +		 * but that's the most seen use-case.
 +		 */
-+		if (hostname[0] && hostname[0] != '?')
-+			client_config.hostname = alloc_dhcp_option(DHCP_HOST_NAME, hostname, 0);
++		if (hostname[0] != '?')
++			client_data.hostname = alloc_dhcp_option(DHCP_HOST_NAME, hostname, 0);
 +		free(hostname);
 +	}
 +
- 	/* Make sure fd 0,1,2 are open */
- 	bb_sanitize_stdio();
  	/* Create pidfile */
+ 	write_pidfile(client_data.pidfile);
+ 	/* Goes to stdout (unless NOMMU) and possibly syslog */
+diff --git a/networking/udhcp/dhcpc.c b/networking/udhcp/dhcpc.c
+index 636c4739e..f085a8f60 100644
+--- a/networking/udhcp/dhcpc.c
++++ b/networking/udhcp/dhcpc.c
+@@ -1411,6 +1411,18 @@ int udhcpc_main(int argc UNUSED_PARAM, char **argv)
+ 		logmode |= LOGMODE_SYSLOG;
+ 	}
+ 
++	/* try to get hostname from OS */
++	if (!client_data.hostname) {
++		char *hostname = safe_gethostname();
++		/*
++		 * Tito's safe_gethostname is finally a "safe_visible_gethostname",
++		 * but that's the most seen use-case.
++		 */
++		if (hostname[0] != '?')
++			client_data.hostname = alloc_dhcp_option(DHCP_HOST_NAME, hostname, 0);
++		free(hostname);
++	}
++
+ 	/* Create pidfile */
+ 	write_pidfile(client_data.pidfile);
+ 	/* Goes to stdout (unless NOMMU) and possibly syslog */
 -- 
-2.15.2 (Apple Git-101.1)
+2.20.1 (Apple Git-117)
 
