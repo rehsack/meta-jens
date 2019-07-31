@@ -1,0 +1,66 @@
+#!/bin/bash
+#
+# This helper allows using sstate-cache to speed up builds but updating
+# existing sstate-cache with newly build artefacts.
+#
+# (c) 2018-2019 Jens Rehsack
+#
+# Licensed under the terms of MIT license
+
+set -x
+
+SCRIPT_DIR="$(dirname $0)"
+RECIPE_DIR="${SCRIPT_DIR}"
+while [ ! -d "${RECIPE_DIR}/conf" ];
+do
+    RECIPE_DIR="$(dirname ${RECIPE_DIR})"
+done
+. ${SCRIPT_DIR}/algorithms
+test -z "${OEROOT}" && OEROOT=$(readlink -f ${RECIPE_DIR}/../poky)
+. ${OEROOT}/scripts/oe-init-bashrc
+
+set -x
+CACHE_LOCATION_VARIABLES="DL_DIR|SSTATE_DIR|SOURCE_MIRROR_URL|SSTATE_MIRRORS"
+BITBAKE_SETTINGS=$(bitbake -e system-image | egrep "^($CACHE_LOCATION_VARIABLES)=")
+eval $BITBAKE_SETTINGS
+
+if [ -n "${SOURCE_MIRROR_URL}" ]
+then
+    for cache_uri in ${SOURCE_MIRROR_URL}
+    do
+        case "${cache_uri}" in
+            file://*)
+                cache_path="${cache_uri#file://}"
+                cache_owner=$(stat -c "%U" "${cache_path}")
+                cache_group=$(stat -c "%G" "${cache_path}")
+                (cd "${DL_DIR}" && find . -maxdepth 1 -type f -print0 | xargs -0 tar cf - ) | \
+                  (cd "${cache_path}" && sudo tar xf -)
+                sudo chown -R $cache_owner:$cache_group "${cache_path}"
+                sudo chmod -R ugo+rX-w "${cache_path}"
+                ;;
+            *)
+                ;;
+        esac
+    done
+fi
+
+if [ -n "${SSTATE_MIRRORS}" ]
+then
+    for cache_uri in ${SSTATE_MIRRORS}
+    do
+        case "${cache_uri}" in
+            file://*/PATH)
+                cache_path="${cache_uri#file://}"
+                cache_path="${cache_path%/PATH}"
+                cache_owner=$(stat -c "%U" "${cache_path}")
+                cache_group=$(stat -c "%G" "${cache_path}")
+                (cd "${SSTATE_DIR}" && find . -type f -print0 | xargs -0 tar cf - ) | \
+                  (cd "${cache_path}" && sudo tar xf -)
+                sudo chown -R $cache_owner:$cache_group "${cache_path}"
+                sudo chmod -R ugo+rX-w "${cache_path}"
+                ;;
+            *)
+                ;;
+        esac
+    done
+fi
