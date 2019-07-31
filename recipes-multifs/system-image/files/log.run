@@ -1,3 +1,4 @@
 #!/bin/sh
 
+test -d /var/log/daemontools/sysimg_update || mkdir -p /var/log/daemontools/sysimg_update
 exec multilog t /var/log/daemontools/sysimg_update
