@@ -1,1 +1,0 @@
-%svcctrl   ALL= NOPASSWD: /usr/bin/svc,/usr/bin/svstat,/usr/bin/svok,/usr/bin/svup
