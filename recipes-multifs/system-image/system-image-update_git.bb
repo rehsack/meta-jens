@@ -13,7 +13,6 @@ file://${COMMON_LICENSE_DIR}/GPL-2.0;md5=801f80980d171dd6425610833a22dbe6"
 
 SRC_URI = "git://github.com/rehsack/System-Image-Update.git;rev=57b109846393c03feb71b5d0edfd48742aafbb1f \
            file://run \
-           file://log.run \
 	   file://sysimg_update.json \
 	   file://system-image-update-logrotate.conf \
 "
@@ -37,16 +36,15 @@ RDEPENDS_${PN} += "net-async-http-perl"
 RDEPENDS_${PN} += "digest-md5-perl"
 RDEPENDS_${PN} += "digest-sha-perl"
 RDEPENDS_${PN} += "digest-sha3-perl"
-RDEPENDS_${PN} += "daemontools"
-RDEPENDS_${PN} += "logrotate"
 RDEPENDS_${PN} += "perl-module-storable"
-RDEPENDS_${PN} += "system-image"
 RDEPENDS_${PN} += "perl-modules"
+RDEPENDS_${PN} += "system-image"
+RDEPENDS_${PN} += "logrotate"
 DEPENDS += "test-pod-perl"
 
 S = "${WORKDIR}/git"
 
-inherit cpan
+inherit cpan supervised
 
 do_configure_append() {
     oe_runmake manifest
@@ -56,17 +54,12 @@ do_compile_append() {
 	sed -i -e "s/@MACHINE[@]/${MACHINE}/g" ${WORKDIR}/sysimg_update.json
 }
 
-SERVICE_ROOT = "${sysconfdir}/daemontools/service"
-SYSUPDT_SERVICE_DIR = "${SERVICE_ROOT}/sysimg_update"
+SERVICE_NAME = "sysimg_update"
+SERVICE_LOG_SCRIPT_NAME = "log.run"
 
 do_install_append() {
     install -d -m 755 ${D}${sysconfdir}
     install -m 0644 ${WORKDIR}/sysimg_update.json ${D}${sysconfdir}
-
-    install -d ${D}${SYSUPDT_SERVICE_DIR}
-    install -d ${D}${SYSUPDT_SERVICE_DIR}/log
-    install -m 0755 ${WORKDIR}/run ${D}${SYSUPDT_SERVICE_DIR}/run
-    install -m 0755 ${WORKDIR}/log.run ${D}${SYSUPDT_SERVICE_DIR}/log/run
 
     install -m 755 -d ${D}${sysconfdir}/logrotate.d
     install -m 644 ${WORKDIR}/system-image-update-logrotate.conf ${D}${sysconfdir}/logrotate.d/system-image-update
