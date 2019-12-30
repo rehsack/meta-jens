@@ -12,7 +12,7 @@ include recipes-core/images/core-image-base.bb
 include update.inc
 include dev.inc
 
-inherit core-image distro_features_check
+inherit core-image features_check
 
 # Add extra image features
 EXTRA_IMAGE_FEATURES += " \

@@ -30,4 +30,4 @@ DEPENDS += " bison-native flex-native"
 
 S = "${WORKDIR}/git"
 
-inherit autotools gettext pkgconfig distro_features_check
+inherit autotools gettext pkgconfig features_check

@@ -11,7 +11,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 include recipes-core/images/core-image-base.bb
 include update.inc
 
-inherit core-image distro_features_check rootdev-check
+inherit core-image features_check rootdev-check
 
 # Add extra image features
 EXTRA_IMAGE_FEATURES += " \
