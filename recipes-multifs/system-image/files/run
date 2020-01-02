@@ -1,10 +1,11 @@
 #!/bin/sh 
 
-test -f /tmp/sysimg_update.once || rm -rf /data/.update/*
-test -f /tmp/sysimg_update.once || sleep 5m
-touch /tmp/sysimg_update.once
-
 export SYSTEM_IMAGE_UPDATE_DIR=/data/.update
 export SYSTEM_IMAGE_UPDATE_FLASH_DIR=/data/.flashimg
+
+test -f /tmp/@SERVICE_NAME@.once || rm -rf ${SYSTEM_IMAGE_UPDATE_DIR}/*
+test -f /tmp/@SERVICE_NAME@.once || sleep 5m
+touch /tmp/@SERVICE_NAME@.once
+
 mkdir -p ${SYSTEM_IMAGE_UPDATE_DIR}
-exec /usr/bin/sysimg_update 2>&1
+exec /usr/bin/@SERVICE_NAME@ 2>&1

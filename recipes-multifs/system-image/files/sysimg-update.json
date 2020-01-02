@@ -1,0 +1,11 @@
+{
+    "log_adapter" : [
+        "Log4cplus",
+        "config_file", "/etc/sysimg-update.properties",
+        "name", "sysimg-update"
+    ],
+    "update_manifest_basename" : "manifest-1.0.json",
+    "download_file_prefix": "@MACHINE@/",
+    "restrict_record_installed": [ "system-image" ],
+    "record_installed_aliases": {}
+}
