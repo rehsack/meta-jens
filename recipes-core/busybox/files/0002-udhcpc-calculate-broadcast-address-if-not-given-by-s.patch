@@ -1,4 +1,4 @@
-From f6a54519daebd2f634a4574ec2a5c7179a939c24 Mon Sep 17 00:00:00 2001
+From a95ce5ea7de49b06e8c5adbda869eba9effb0576 Mon Sep 17 00:00:00 2001
 From: Andreas Oberritter <obi@opendreambox.org>
 Date: Wed, 20 Mar 2013 14:31:26 +0100
 Subject: [PATCH 2/3] udhcpc: calculate broadcast address if not given by
@@ -26,7 +26,7 @@ index 60255eefa..ea0f8dbc4 100644
  //#define DHCP_NIS_DOMAIN       0x28
  //#define DHCP_NIS_SERVER       0x29
 diff --git a/networking/udhcp/dhcpc.c b/networking/udhcp/dhcpc.c
-index 656295ff7..636c4739e 100644
+index 5a1f8fd7a..be978a05e 100644
 --- a/networking/udhcp/dhcpc.c
 +++ b/networking/udhcp/dhcpc.c
 @@ -570,6 +570,23 @@ static char **fill_envp(struct dhcp_packet *packet)
@@ -54,5 +54,5 @@ index 656295ff7..636c4739e 100644
  }
  
 -- 
-2.20.1 (Apple Git-117)
+2.21.0 (Apple Git-122.2)
 

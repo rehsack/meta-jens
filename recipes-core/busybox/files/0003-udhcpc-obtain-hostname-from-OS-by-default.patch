@@ -1,4 +1,4 @@
-From 0cf511c51b648fe8369f9ffcbfaf8830b0979bc9 Mon Sep 17 00:00:00 2001
+From 91944709cf18c9a105521dbc2952c878895a8dfe Mon Sep 17 00:00:00 2001
 From: Andreas Oberritter <obi@opendreambox.org>
 Date: Wed, 20 Mar 2013 14:31:25 +0100
 Subject: [PATCH 3/3] udhcpc: obtain hostname from OS by default
@@ -14,10 +14,10 @@ Signed-off-by: Jens Rehsack <sno@netbsd.org>
  2 files changed, 24 insertions(+)
 
 diff --git a/networking/udhcp/d6_dhcpc.c b/networking/udhcp/d6_dhcpc.c
-index 9d8e17c51..a96e61d47 100644
+index 85c410a7c..ad79d4ec0 100644
 --- a/networking/udhcp/d6_dhcpc.c
 +++ b/networking/udhcp/d6_dhcpc.c
-@@ -1272,6 +1272,18 @@ int udhcpc6_main(int argc UNUSED_PARAM, char **argv)
+@@ -1337,6 +1337,18 @@ int udhcpc6_main(int argc UNUSED_PARAM, char **argv)
  		logmode |= LOGMODE_SYSLOG;
  	}
  
@@ -37,7 +37,7 @@ index 9d8e17c51..a96e61d47 100644
  	write_pidfile(client_data.pidfile);
  	/* Goes to stdout (unless NOMMU) and possibly syslog */
 diff --git a/networking/udhcp/dhcpc.c b/networking/udhcp/dhcpc.c
-index 636c4739e..f085a8f60 100644
+index be978a05e..f083403f2 100644
 --- a/networking/udhcp/dhcpc.c
 +++ b/networking/udhcp/dhcpc.c
 @@ -1411,6 +1411,18 @@ int udhcpc_main(int argc UNUSED_PARAM, char **argv)
@@ -60,5 +60,5 @@ index 636c4739e..f085a8f60 100644
  	write_pidfile(client_data.pidfile);
  	/* Goes to stdout (unless NOMMU) and possibly syslog */
 -- 
-2.20.1 (Apple Git-117)
+2.21.0 (Apple Git-122.2)
 
