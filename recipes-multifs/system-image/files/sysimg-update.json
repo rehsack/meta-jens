@@ -4,8 +4,16 @@
         "config_file", "/etc/sysimg-update.properties",
         "name", "sysimg-update"
     ],
+    "update_server": "update.poed.de",
+    "update_path": "@MACHINE@",
     "update_manifest_basename" : "manifest-1.0.json",
+    "update_manifest_dirname": "@SYSTEM_IMAGE_UPDATE_DIR@",
     "download_file_prefix": "@MACHINE@/",
+    "image_location": "@SYSTEM_IMAGE_UPDATE_FLASH_DIR@",
+    "flash_command": "/etc/init.d/flash-device.sh",
+    "installed_version_file": "@RECORD_INSTALLED_DEST@/system-image",
     "restrict_record_installed": [ "system-image" ],
+    "record_installed_location": "@RECORD_INSTALLED_DEST@",
+    "record_installed_components_image_separator": ":",
     "record_installed_aliases": {}
 }

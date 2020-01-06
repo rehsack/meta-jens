@@ -10,7 +10,7 @@ HOMEPAGE=	"https://github.com/rehsack/System-Image-Update"
 
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Artistic-2.0;md5=8bbc66f0ba93cec26ef526117e280266 \
 "
-SRC_URI = "git://github.com/rehsack/System-Image-Update.git;rev=b781d1d8739f89e4791429d52bbed88efa48d06b \
+SRC_URI = "git://github.com/rehsack/System-Image-Update.git;rev=6cab03cc59412c12cacc67c3095e4e73ac791513 \
            file://run \
 	   file://sysimg-update.json \
 	   file://sysimg-update.properties \
@@ -45,7 +45,7 @@ DEPENDS += "test-pod-perl"
 
 S = "${WORKDIR}/git"
 
-inherit cpan supervised
+inherit cpan supervised record-installed-query
 
 SERVICE_NAME = "sysimg-update"
 SERVICE_LOG_SCRIPT_NAME = "log.run"
@@ -58,11 +58,11 @@ do_configure_append() {
 }
 
 do_compile_append() {
-	sed -i -e "s/@MACHINE[@]/${MACHINE}/g" ${WORKDIR}/sysimg-update.json
-	sed -i -e "s,@SERVICE_NAME[@],${SERVICE_NAME},g" \
+	sed -i -e "s,@SERVICE_NAME[@],${SERVICE_NAME},g" -e "s/@MACHINE[@]/${MACHINE}/g" \
 	    -e "s,@SYSTEM_IMAGE_UPDATE_DIR[@],${SYSTEM_IMAGE_UPDATE_DIR},g" \
 	    -e "s,@SYSTEM_IMAGE_UPDATE_FLASH_DIR[@],${SYSTEM_IMAGE_UPDATE_FLASH_DIR},g" \
-	    ${WORKDIR}/run
+	    -e "s,@RECORD_INSTALLED_DEST[@],${RECORD_INSTALLED_DEST},g" \
+	    ${WORKDIR}/run ${WORKDIR}/sysimg-update.json
 }
 
 do_install_append() {
