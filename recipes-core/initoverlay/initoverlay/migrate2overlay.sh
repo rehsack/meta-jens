@@ -1,7 +1,5 @@
 #!/bin/sh
 
-set -x
-
 ROOTDEV=`mount | grep "on / type" | sed -e 's/ on.*//'`
 CHECK_DIRS=""
 MIGRATE_DIRS=""

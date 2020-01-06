@@ -9,8 +9,6 @@
 # Description:
 ### END INIT INFO
 
-set -x
-
 test -e /etc/default/rcS && . /etc/default/rcS
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
