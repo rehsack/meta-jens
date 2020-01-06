@@ -1,9 +1,9 @@
 #
-# This is to record installed key-apps without putting entire package
+# This is to register/record installed key-apps without putting entire package
 # database on target
 #
 
-RECORD_INSTALLED_DEST ?= "/opt/record-installed"
+inherit record-installed-common
 
 do_install_append () {
         install -d "${D}/${RECORD_INSTALLED_DEST}"
