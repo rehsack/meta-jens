@@ -71,7 +71,7 @@ then
         then
             dtb_filename="${DTS_BASE_NAME}.dtb"
             bin_for_dtb="`readlink ${DEPLOY_DIR_IMAGE}/${dtb_filename}`"
-            kernel_bin_for_dtb="`echo ${bin_for_dtb} | sed "s,$DTS_BASE_NAME,zImage,g;s,\.dtb$,.bin,g"`"
+            kernel_bin_for_dtb="`echo ${bin_for_dtb} | sed "s,$DTS_BASE_NAME,${KERNEL_IMAGETYPE},g;s,\.dtb$,.bin,g"`"
         elif [ -e "${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${DTS_BASE_NAME}.dtb" ]
         then
             dtb_filename="${KERNEL_IMAGETYPE}-${DTS_BASE_NAME}.dtb"
