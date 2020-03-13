@@ -18,10 +18,10 @@ IMAGES=""
 
 for IMAGE in "$@"
 do
-    RECOVERY_IMAGE="updatable-core-image"
+    RECOVERY_IMAGE="updatable-image-core"
 
-    echo $IMAGE | fgrep -e "-dev-image"
-    test $? -eq 0 && RECOVERY_IMAGE="updatable-core-dev-image"
+    echo $IMAGE | fgrep -e "-dev"
+    test $? -eq 0 && RECOVERY_IMAGE="updatable-image-core-dev"
 
     IMAGES="${IMAGES}${IMGSPC}${IMAGE}"
     BUILD_IMAGES="${BUILD_IMAGES}${IMGSPC}${IMAGE}"
@@ -93,12 +93,12 @@ do
     SYSIMG_FILES=".${IMAGE}-${WANTED_ROOT_DEV}-${SYSIMG_VERSION}-settings .settings"
     FILES="${SYSIMG_FILES} ${KERNEL_FILES}"
     DEV=0
-    RECOVERY_IMAGE="updatable-core-image"
+    RECOVERY_IMAGE="updatable-image-core"
 
     set +e
-    echo $IMAGE | fgrep -e "-dev-image"
+    echo $IMAGE | fgrep -e "-dev"
     test $? -eq 0 && DEV=1
-    test "$DEV" -eq 1 && RECOVERY_IMAGE="updatable-core-dev-image"
+    test "$DEV" -eq 1 && RECOVERY_IMAGE="updatable-image-core-dev"
     set -e
 
     C="KERNEL"

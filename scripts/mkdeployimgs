@@ -3,11 +3,10 @@
 set -x
 set -e
 
-DEFAULT_IMAGES_curie="rdm-hp2-image rdm-hp2-xbmc-image"
-DEFAULT_IMAGES_bohr="rdm-hp2-image"
+DEFAULT_IMAGES_wendy="updatable-image-app"
 
 MKIMGS="`echo $0 | sed -e 's/mkdeployimgs/mkimgs/'`"
-MACHINES="${MACHINES:-curie bohr}"
+MACHINES="${MACHINES:-wendy}"
 for MACHINE in ${MACHINES}
 do
     DEFAULT_IMAGES_NM=`eval echo DEFAULT_IMAGES_${MACHINE}`
@@ -17,8 +16,8 @@ do
         IMG_LIST="${images}"
 	for IMG in $images
 	do
-	    test $(echo ${IMG} | fgrep '-dev-') && continue
-	    DEV_IMG="`echo $IMG | sed -e 's/-image/-dev-image/'`"
+	    test $(echo ${IMG} | fgrep '-dev') && continue
+	    DEV_IMG="${IMG}-dev"
 	    IMG_LIST="${IMG_LIST} $DEV_IMG"
 	done
 	images="$IMG_LIST"
