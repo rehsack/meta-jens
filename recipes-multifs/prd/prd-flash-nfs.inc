@@ -9,17 +9,19 @@ def all_root_dev_type_sources (d) :
 
 
 RDEPENDS_${PN} = "\
-    parted \
-    openssl \
+	parted \
+	openssl \
+	e2fsprogs \
+	e2fsprogs-tune2fs \
 "
 
 SRC_URI_remove = "\
-    file://init.${ROOT_DEV_TYPE} \
+	file://init.${ROOT_DEV_TYPE} \
 "
 
 SRC_URI_append = "\
-    file://algorithms \
-    ${@all_root_dev_type_sources(d)} \
+	file://algorithms \
+	${@all_root_dev_type_sources(d)} \
 "
 
 NFS_FLASH = "#"
