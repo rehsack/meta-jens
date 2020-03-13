@@ -39,6 +39,8 @@ PACKAGES =+ "${PN}-ifplugd"
 FILES_${PN}-ifplugd = "${sysconfdir}/init.d/busybox-ifplugd ${sysconfdir}/rc*/*busybox-ifplugd ${sysconfdir}/ifplugd ${DEFWIFI_SERVICE_DIR}"
 RDEPENDS_${PN}-ifplugd += " daemontools"
 
+RPROVIDES_${PN} += "ifupdown"
+
 DEPENDS_append = " update-rc.d-native"
 
 do_compile_append () {
