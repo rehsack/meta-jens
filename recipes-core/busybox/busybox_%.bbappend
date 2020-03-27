@@ -1,69 +1,102 @@
 FILESEXTRAPATHS_append := "${THISDIR}/files:${THISDIR}/busybox:"
 
 SRC_URI += "\
-    file://udhcpc-opts.cfg \
+    file://arping.cfg \
     file://netstat.cfg \
     file://nice.cfg \
     file://unix-local.cfg \
-    file://udhcp.cfg \
     file://simple.hostname \
-    file://ifupdown.cfg \
-    file://ifplugd.cfg \
-    file://ifplugd/ifplugd.action \
-    file://ifplugd/ifplugd.conf \
-    file://ifplugd/ifplugd.default-wifi \
-    file://ifplugd/ifplugd.init \
     file://pstree.cfg \
     file://user.cfg \
     file://ls.cfg \
-    file://mknod.cfg \
     file://realpath.cfg \
     file://procps.cfg \
     file://swap.cfg \
     file://util-linux.cfg \
-    file://ash.cfg \
     file://if-sysctl.cfg \
-    file://arping.cfg \
     \
     file://0001-ifupdown-improve-debian-compatibility-for-mapping.patch \
     file://0002-udhcpc-calculate-broadcast-address-if-not-given-by-s.patch \
     file://0003-udhcpc-obtain-hostname-from-OS-by-default.patch \
 "
 
-SRC_URI += "${@bb.utils.contains("IMAGE_FEATURES", 'debug-tweaks', ' file://procstat.cfg ', '', d )}"
+NETWORK_SETUP_SRC_URI = "\
+    file://udhcp.cfg \
+    file://udhcpc-opts.cfg \
+    \
+    file://ifupdown.cfg \
+"
 
-SERVICE_ROOT = "${sysconfdir}/daemontools/service"
-DEFWIFI_SERVICE_DIR = "${SERVICE_ROOT}/default-wifi"
+WIFI_ETH_AUTO_ENABLE_SRC_URI = "\
+    file://ifplugd.cfg \
+    file://ifplugd/ifplugd.action \
+    file://ifplugd/ifplugd.conf \
+    file://ifplugd/ifplugd.default-wifi \
+    file://ifplugd/ifplugd.init \
+"
 
-PACKAGES =+ "${PN}-ifplugd"
-FILES_${PN}-ifplugd = "${sysconfdir}/init.d/busybox-ifplugd ${sysconfdir}/rc*/*busybox-ifplugd ${sysconfdir}/ifplugd ${DEFWIFI_SERVICE_DIR}"
-RDEPENDS_${PN}-ifplugd += " daemontools"
+NO_ASH_SRC_URI = "\
+    file://no-ash.cfg \
+"
 
-RPROVIDES_${PN} += "ifupdown"
+PACKAGECONFIG_DEBUG_TWEAKS = "${@bb.utils.contains("IMAGE_FEATURES", 'debug-tweaks', 'debug-tweaks', '', d )}"
+PACKAGECONFIG_WIFI_AUTO = "${@bb.utils.contains("MACHINE_FEATURES", 'wifi', 'wifi-choose', '', d )}"
 
-DEPENDS_append = " update-rc.d-native"
+PACKAGECONFIG ?= "\
+    network-setup \
+    ${PACKAGECONFIG_DEBUG_TWEAKS} \
+    ${PACKAGECONFIG_WIFI_AUTO} \
+"
+
+PACKAGECONFIG[debug-tweaks] = ""
+PACKAGECONFIG[network-setup] = ""
+PACKAGECONFIG[wifi-choose] = ""
+PACKAGECONFIG[no-ash] = ""
+
+SRC_URI += "${@bb.utils.contains("PACKAGECONFIG", 'debug-tweaks', ' file://procstat.cfg ', '', d )}"
+SRC_URI += "${@bb.utils.contains("PACKAGECONFIG", 'network-setup', ' ${NETWORK_SETUP_SRC_URI} ', '', d )}"
+SRC_URI += "${@bb.utils.contains("PACKAGECONFIG", 'wifi-choose', ' ${WIFI_ETH_AUTO_ENABLE_SRC_URI} ', '', d )}"
+SRC_URI += "${@bb.utils.contains("PACKAGECONFIG", 'no-ash', ' ${NO_ASH_SRC_URI} ', '', d )}"
+
+inherit ${@bb.utils.contains("PACKAGECONFIG", 'wifi-choose', 'supervised', 'supervised-base', d )}
+
+PACKAGES_WIFI_CHOOSE = "${@bb.utils.contains("PACKAGECONFIG", 'wifi-choose', ' ${PN}-ifplugd ', '', d )}"
+
+PACKAGES =+ "${PACKAGES_WIFI_CHOOSE}"
+INITSCRIPT_NAME_${PN}-ifplugd = "ifplugd.init"
+INITSCRIPT_PARAMS_${PN}-ifplugd = "defaults 05"
+INITSCRIPT_PACKAGES += "${PN}-ifplugd"
+FILES_${PN}-ifplugd = "${sysconfdir}/init.d/busybox-ifplugd ${sysconfdir}/rc*/*busybox-ifplugd ${sysconfdir}/ifplugd ${SERVICE_DIR}"
+
+SUPERVISED_PACKAGES = "${PACKAGES_WIFI_CHOOSE}"
+
+SERVICE_NAME_${PN}-ifplugd = "default-wifi"
+SERVICE_DIR_${PN}-ifplugd ?= "${SERVICE_ROOT}/${SERVICE_NAME_${PN}-ifplugd}"
+SERVICE_RUN_SCRIPT_NAME_${PN}-ifplugd = "ifplugd/ifplugd.default-wifi"
+SERVICE_RUN_SCRIPT_DOWN_${PN}-ifplugd = "down"
+SERVICE_LOG_SCRIPT_NAME_${PN}-ifplugd = "log"
+
+RPROVIDES_${PN} += "${@bb.utils.contains("PACKAGECONFIG", 'network-setup', ' ifupdown ', '', d )}"
 
 do_compile_append () {
-    sed -i -e "s,@DEFAULT_ETH_DEV[@],${DEFAULT_ETH_DEV},g" -e "s,@DEFAULT_WIFI_DEV[@],${DEFAULT_WIFI_DEV},g" \
-        -e "s,@BINDIR[@],${bindir},g" \
-        ${WORKDIR}/ifplugd/ifplugd.action ${WORKDIR}/ifplugd/ifplugd.conf ${WORKDIR}/ifplugd/ifplugd.default-wifi
+	if grep -q "CONFIG_IFPLUGD=y" ${B}/.config; then
+		sed -i -e "s,@DEFAULT_ETH_DEV[@],${DEFAULT_ETH_DEV},g" -e "s,@DEFAULT_WIFI_DEV[@],${DEFAULT_WIFI_DEV},g" \
+		       -e "s,@BINDIR[@],${bindir},g" -e "s,@SERVICE_DIR[@],${SERVICE_DIR_${PN}-ifplugd},g" \
+		       -e "s,@SVC_STATUS_CMD[@],${SVC_STATUS_CMD},g" -e "s,@SVC_ONCE_CMD[@],${SVC_ONCE_CMD},g" \
+		    ${WORKDIR}/ifplugd/ifplugd.action ${WORKDIR}/ifplugd/ifplugd.conf ${WORKDIR}/ifplugd/ifplugd.default-wifi
+	fi
 }
 
 do_install_append() {
     if grep -q "CONFIG_IFPLUGD=y" ${B}/.config; then
-        install -m 0755 ${WORKDIR}/ifplugd/ifplugd.init ${D}${sysconfdir}/init.d/busybox-ifplugd
+        if ${@bb.utils.contains('DISTRO_FEATURES', 'sysvinit', 'true', 'false', d)}
+        then
+            install -m 0755 ${WORKDIR}/ifplugd/ifplugd.init ${D}${sysconfdir}/init.d/
+        fi
 
         install -d ${D}${sysconfdir}/ifplugd
         install -m 0755 ${WORKDIR}/ifplugd/ifplugd.action ${D}${sysconfdir}/ifplugd/ifplugd.action
         install -m 0644 ${WORKDIR}/ifplugd/ifplugd.conf ${D}${sysconfdir}/ifplugd/ifplugd.conf
-
-	install -d ${D}${DEFWIFI_SERVICE_DIR}
-
-	# install svc run script and make it executable
-	install -m 0755 ${WORKDIR}/ifplugd/ifplugd.default-wifi ${D}${DEFWIFI_SERVICE_DIR}/run
-	touch ${D}${DEFWIFI_SERVICE_DIR}/down
-
-        update-rc.d -r ${D} busybox-ifplugd defaults 05
     fi
 
     if grep -q "CONFIG_UDHCPC=y" ${B}/.config; then

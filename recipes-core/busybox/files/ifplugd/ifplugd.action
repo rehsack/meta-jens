@@ -26,14 +26,14 @@ if [ "$2" = "up" ] ; then
         touch /tmp/${1}.settled
         test -x /usr/sbin/ethtool -a -f /etc/ethtool-config && . /etc/ethtool-config && /usr/sbin/ethtool ${ETHTOOL_ARGS}
         /sbin/ifup $1
-        a=0; while ! svok /etc/daemontools/service/default-wifi/ && [ $a -lt 50 ]; do sleep 1; a=$((a+1)); done # wait max. 50s until service is up
-        svc -o /etc/daemontools/service/default-wifi # enable wlan0-nonet
+        a=0; while ! @SVC_STATUS_CMD@ @SERVICE_DIR@ && [ $a -lt 50 ]; do sleep 1; a=$((a+1)); done # wait max. 50s until service is up
+        @SVC_ONCE_CMD@ @SERVICE_DIR@ # enable wlan0-nonet
         exit 0
 elif [ "$2" = "down" ] ; then
         /sbin/ifdown @DEFAULT_WIFI_DEV@ # disable wlan0-nonet
         /sbin/ifdown $1
-        a=0; while ! svok /etc/daemontools/service/default-wifi/ && [ $a -lt 50 ]; do sleep 1; a=$((a+1)); done # wait max. 50s until service is up
-        svc -o /etc/daemontools/service/default-wifi # whatever is configured there ...
+        a=0; while ! @SVC_STATUS_CMD@ @SERVICE_DIR@ && [ $a -lt 50 ]; do sleep 1; a=$((a+1)); done # wait max. 50s until service is up
+        @SVC_ONCE_CMD@ @SERVICE_DIR@ # whatever is configured there ...
         exit 0
 fi
 
