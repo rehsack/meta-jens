@@ -2,22 +2,20 @@ FILESEXTRAPATHS_append := "${THISDIR}/files:${THISDIR}/busybox:"
 
 SRC_URI += "\
     file://arping.cfg \
-    file://netstat.cfg \
     file://nice.cfg \
     file://unix-local.cfg \
     file://simple.hostname \
-    file://pstree.cfg \
-    file://user.cfg \
     file://ls.cfg \
-    file://realpath.cfg \
-    file://procps.cfg \
-    file://swap.cfg \
-    file://util-linux.cfg \
-    file://if-sysctl.cfg \
     \
     file://0001-ifupdown-improve-debian-compatibility-for-mapping.patch \
     file://0002-udhcpc-calculate-broadcast-address-if-not-given-by-s.patch \
     file://0003-udhcpc-obtain-hostname-from-OS-by-default.patch \
+"
+
+DEBUG_TWEAKS_SRC_URI = "\
+    file://netstat.cfg \
+    file://procstat.cfg \
+    file://pstree.cfg \
 "
 
 NETWORK_SETUP_SRC_URI = "\
@@ -39,6 +37,34 @@ NO_ASH_SRC_URI = "\
     file://no-ash.cfg \
 "
 
+NO_IFCONFIG_SRC_URI = "\
+    file://no-if-sysctl.cfg \
+"
+
+NO_MKNOD_SRC_URI = "\
+    file://no-mknod.cfg \
+"
+
+NO_PROCPS_SRC_URI = "\
+    file://no-procps.cfg \
+"
+
+NO_REALPATH_SRC_URI = "\
+    file://no-realpath.cfg \
+"
+
+NO_SWAPUTILS_SRC_URI = "\
+    file://no-swaputils.cfg \
+"
+
+NO_UTMPUTILS_SRC_URI = "\
+    file://no-utmputils.cfg \
+"
+
+NO_UTILLINUX_SRC_URI = "\
+    file://no-util-linux.cfg \
+"
+
 PACKAGECONFIG_DEBUG_TWEAKS = "${@bb.utils.contains("IMAGE_FEATURES", 'debug-tweaks', 'debug-tweaks', '', d )}"
 PACKAGECONFIG_WIFI_AUTO = "${@bb.utils.contains("MACHINE_FEATURES", 'wifi', 'wifi-choose', '', d )}"
 
@@ -46,17 +72,34 @@ PACKAGECONFIG ?= "\
     network-setup \
     ${PACKAGECONFIG_DEBUG_TWEAKS} \
     ${PACKAGECONFIG_WIFI_AUTO} \
+    no-ifconfig \
+    no-realpath \
+    no-swaputils \
+    no-utmputils \
+    no-util-linux \
 "
 
 PACKAGECONFIG[debug-tweaks] = ""
 PACKAGECONFIG[network-setup] = ""
 PACKAGECONFIG[wifi-choose] = ""
 PACKAGECONFIG[no-ash] = ""
+PACKAGECONFIG[no-ifconfig] = ""
+PACKAGECONFIG[no-mknod] = ""
+PACKAGECONFIG[no-procps] = ""
+PACKAGECONFIG[no-realpath] = ""
+PACKAGECONFIG[no-swaputils] = ""
+PACKAGECONFIG[no-utmputils] = ""
+PACKAGECONFIG[no-util-linux] = ""
 
-SRC_URI += "${@bb.utils.contains("PACKAGECONFIG", 'debug-tweaks', ' file://procstat.cfg ', '', d )}"
+SRC_URI += "${@bb.utils.contains("PACKAGECONFIG", 'debug-tweaks', '  ', '', d )}"
 SRC_URI += "${@bb.utils.contains("PACKAGECONFIG", 'network-setup', ' ${NETWORK_SETUP_SRC_URI} ', '', d )}"
 SRC_URI += "${@bb.utils.contains("PACKAGECONFIG", 'wifi-choose', ' ${WIFI_ETH_AUTO_ENABLE_SRC_URI} ', '', d )}"
 SRC_URI += "${@bb.utils.contains("PACKAGECONFIG", 'no-ash', ' ${NO_ASH_SRC_URI} ', '', d )}"
+SRC_URI += "${@bb.utils.contains("PACKAGECONFIG", 'no-procps', ' ${NO_PROCPS_SRC_URI} ', '', d )}"
+SRC_URI += "${@bb.utils.contains("PACKAGECONFIG", 'no-realpath', ' ${NO_REALPATH_SRC_URI} ', '', d )}"
+SRC_URI += "${@bb.utils.contains("PACKAGECONFIG", 'no-swaputils', ' ${NO_SWAPUTILS_SRC_URI} ', '', d )}"
+SRC_URI += "${@bb.utils.contains("PACKAGECONFIG", 'no-utmputils', ' ${NO_UTMPUTILS_SRC_URI} ', '', d )}"
+SRC_URI += "${@bb.utils.contains("PACKAGECONFIG", 'no-util-linux', ' ${NO_UTILLINUX_SRC_URI} ', '', d )}"
 
 inherit ${@bb.utils.contains("PACKAGECONFIG", 'wifi-choose', 'supervised', 'supervised-base', d )}
 
@@ -76,7 +119,12 @@ SERVICE_RUN_SCRIPT_NAME_${PN}-ifplugd = "ifplugd/ifplugd.default-wifi"
 SERVICE_RUN_SCRIPT_DOWN_${PN}-ifplugd = "down"
 SERVICE_LOG_SCRIPT_NAME_${PN}-ifplugd = "log"
 
-RPROVIDES_${PN} += "${@bb.utils.contains("PACKAGECONFIG", 'network-setup', ' ifupdown ', '', d )}"
+PROVIDES_append = "${@bb.utils.contains("PACKAGECONFIG", 'network-setup', ' ifupdown ', '', d )}"
+RPROVIDES_${PN}_append = "${@bb.utils.contains("PACKAGECONFIG", 'network-setup', ' ifupdown ', '', d )}"
+PROVIDES_append = "${@bb.utils.contains("PACKAGECONFIG", 'no-procps', '', 'procps', d )}"
+RPROVIDES_${PN}_append = "${@bb.utils.contains("PACKAGECONFIG", 'no-procps', '', 'procps', d )}"
+
+RRECOMMENDS_${PN}_append =  "${@bb.utils.contains("PACKAGECONFIG", 'network-setup', ' ${PACKAGES_WIFI_CHOOSE} ', '', d )}"
 
 do_compile_append () {
 	if grep -q "CONFIG_IFPLUGD=y" ${B}/.config; then
