@@ -11,6 +11,7 @@ PROVIDES = "${PACKAGES}"
 PACKAGES = "${PN}-base ${PN}-fetcher"
 
 RDEPENDS_${PN}-base = "\
+	procps \
 	boot-fsck \
 	initoverlay-${WANTED_ROOT_DEV} \
 	util-linux-mount \

@@ -8,7 +8,6 @@ HOMEPAGE = "https://github.com/rehsack/"
 inherit packagegroup
 
 RDEPENDS_${PN} = "\
-	procps \
 	sudo \
 	statgrab \
 	saidar \
