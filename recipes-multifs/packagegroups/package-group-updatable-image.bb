@@ -10,10 +10,12 @@ inherit packagegroup
 PROVIDES = "${PACKAGES}"
 PACKAGES = "${PN}-base ${PN}-fetcher"
 
+OVERLAY_RDEPENDS = "${@bb.utils.contains('WANTED_ROOT_DEV', 'nfs', '', 'initoverlay-${WANTED_ROOT_DEV}', d) }"
+
 RDEPENDS_${PN}-base = "\
 	procps \
 	boot-fsck \
-	initoverlay-${WANTED_ROOT_DEV} \
+	${OVERLAY_RDEPENDS} \
 	util-linux-mount \
 	prd-flash-${WANTED_ROOT_DEV} \
 	udev-extraconf-mount-blacklist-${WANTED_ROOT_DEV} \
