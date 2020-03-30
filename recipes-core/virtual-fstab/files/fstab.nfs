@@ -7,6 +7,6 @@ usbdevfs             /proc/bus/usb        usbdevfs   noauto                0  0
 tmpfs                /run                 tmpfs      mode=0755,nodev,nosuid,strictatime 0  0
 tmpfs                /var/volatile        tmpfs      nodev,nosuid,size=256M 0  0
 
-#10.0.@VLAN_GRP@0.1:/home/gpw2018/nfs/data_prd_@VLAN_GRP@0	/data	nfs	rw,nfsvers=3	0 2
+10.0.@VLAN_GRP@0.1:/home/poed/nfs/data_prd_@VLAN_GRP@0	/data	nfs	rw,nfsvers=3	0 2
 #@overlay@	/etc	overlay	noauto,lowerdir=/etc,upperdir=/data/.shadow/.etc,workdir=/data/.work/.etc	0 0
 #@overlay@	/home	overlay	noauto,lowerdir=/home,upperdir=/data/.shadow/.home,workdir=/data/.work/.home	0 0

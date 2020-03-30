@@ -7,6 +7,8 @@ SRC_URI = "\
     file://fstab.nfs \
 "
 
+RDEPENDS_${PN} += " nfs-utils"
+
 do_compile () {
     set -x
     cp ${WORKDIR}/fstab.nfs ${B}/fstab.${WANTED_ROOT_DEV}
