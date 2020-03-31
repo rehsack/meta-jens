@@ -21,9 +21,10 @@ SRC_URI = "\
 DEPENDS += " update-rc.d-native"
 # append to the base setting from ${OPN}-${WANTED_ROOT_DEV}.inc
 RDEPENDS_${PN}_append = "\
-    perl-module-version \
-    util-linux \
-    ${@bb.utils.contains('PREFERRED_PROVIDER_virtual/bootloader', 'u-boot', 'u-boot-fw-utils', '', d) } \
+	openssl-bin \
+	perl-module-version \
+	util-linux \
+	${@bb.utils.contains('PREFERRED_PROVIDER_virtual/bootloader', 'u-boot', 'u-boot-fw-utils', '', d) } \
 "
 
 def all_root_dev_names (d) :

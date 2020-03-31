@@ -10,7 +10,6 @@ def all_root_dev_type_sources (d) :
 
 RDEPENDS_${PN} = "\
 	parted \
-	openssl \
 	e2fsprogs \
 	e2fsprogs-tune2fs \
 "
