@@ -12,9 +12,6 @@ FEATURE_PACKAGES_app-extra = "package-group-app-extra"
 FEATURE_PACKAGES_app-devel = "package-group-app-devel"
 FEATURE_PACKAGES_app-shell-login = "package-group-app-shell-login"
 
-UPDATABLE_IMAGE_BASE_INSTALL = "\
-	${CORE_IMAGE_BASE_INSTALL} \
-	${UPDATABLE_IMAGE_EXTRA_INSTALL} \
-"
+UPDATABLE_IMAGE_EXTRA_INSTALL ??= ""
 
-IMAGE_INSTALL ?= "${UPDATABLE_IMAGE_BASE_INSTALL}"
+IMAGE_INSTALL_append = " ${UPDATABLE_IMAGE_EXTRA_INSTALL}"
