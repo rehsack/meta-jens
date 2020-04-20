@@ -1,5 +1,13 @@
 # IMAGE_FEATURES[validitems] += "updatable-base updatable-fetcher network-setup app-core app-extra app-devel app-shell-login"
 
+def on_app_image(trueval, falseval, d):
+    imgbn = d.getVar('IMAGE_BASENAME')
+    if not imgbn:
+        return falseval
+    if imgbn.find('app') == -1:
+        return falseval
+    return trueval
+
 FEATURE_PACKAGES_updatable-base = "package-group-updatable-image-base"
 FEATURE_PACKAGES_updatable-fetcher = "package-group-updatable-image-fetcher"
 FEATURE_PACKAGES_network-setup = "package-group-network-setup"
