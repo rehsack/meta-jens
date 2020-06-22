@@ -7,7 +7,7 @@ HOMEPAGE = "https://github.com/rehsack/"
 
 inherit packagegroup
 
-RDEPENDS_${PN}-devel = "\
+RDEPENDS_${PN} = "\
 	packagegroup-core-buildessential \
 	ltrace \
 	systemtap \
@@ -17,4 +17,4 @@ RDEPENDS_${PN}-devel = "\
 	subversion \
 	valgrind \
 "
-RDEPENDS__${PN}-devel_append = "${@bb.utils.contains("MACHINE_FEATURES", "efi", "efibootmgr", "", d)}"
+RDEPENDS_${PN}_append = "${@bb.utils.contains("MACHINE_FEATURES", "efi", "efibootmgr", "", d)}"
