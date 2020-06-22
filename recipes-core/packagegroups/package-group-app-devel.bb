@@ -9,6 +9,7 @@ inherit packagegroup
 
 RDEPENDS_${PN} = "\
 	packagegroup-core-buildessential \
+	packagegroup-core-tools-profile \
 	ltrace \
 	systemtap \
 	systemtap-uprobes \

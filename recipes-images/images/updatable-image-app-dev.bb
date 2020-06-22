@@ -12,6 +12,12 @@ inherit updatable-image features_check
 
 # Add extra image features
 EXTRA_IMAGE_FEATURES += " \
+	tools-debug \
+	tools-profile \
+	tools-sdk \
+	dbg-pkgs \
+	dev-pkgs \
+	\
 	ssh-server-dropbear \
 	updatable-fetcher \
 	app-core \
