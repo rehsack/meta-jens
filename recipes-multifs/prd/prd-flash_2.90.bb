@@ -18,7 +18,7 @@ SRC_URI = "\
     file://post.generic \
 "
 
-DEPENDS += " update-rc.d-native"
+DEPENDS += "update-rc.d-native"
 # append to the base setting from ${OPN}-${WANTED_ROOT_DEV}.inc
 RDEPENDS_${PN}_append = "\
 	openssl-bin \
