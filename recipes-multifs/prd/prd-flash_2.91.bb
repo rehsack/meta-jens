@@ -18,13 +18,21 @@ SRC_URI = "\
     file://post.generic \
 "
 
+def is_uboot_bootloader(trueval, falseval, d):
+    bootloader = d.getVar('PREFERRED_PROVIDER_virtual/bootloader')
+    if not bootloader:
+        return falseval
+    if bootloader.find('u-boot') == -1:
+        return falseval
+    return trueval
+
 DEPENDS += "update-rc.d-native libubootenv"
 # append to the base setting from ${OPN}-${WANTED_ROOT_DEV}.inc
 RDEPENDS_${PN}_append = "\
 	openssl-bin \
 	perl-module-version \
 	util-linux \
-	${@bb.utils.contains('PREFERRED_PROVIDER_virtual/bootloader', 'u-boot', 'libubootenv-bin', '', d) } \
+	${@is_uboot_bootloader('libubootenv-bin', '', d)} \
 "
 
 def all_root_dev_names (d) :
