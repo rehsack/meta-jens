@@ -16,3 +16,6 @@ EXTRA_IMAGE_FEATURES += " \
 	updatable-fetcher \
 	app-core \
 "
+
+DEPENDS += "${@['updatable-image-core', ''][d.getVar('WANTED_ROOT_DEV') == 'nfs']}"
+IMAGE_FSTYPES = "wic"
