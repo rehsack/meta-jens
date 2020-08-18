@@ -17,5 +17,5 @@ do_install_append () {
 do_install[postfuncs] = "tidy_install"
 
 tidy_install () {
-    rm ${D}${sysconfdir}/rcS.d/S06checkroot.sh
+	rm ${D}${sysconfdir}/rcS.d/S06checkroot.sh
 }
