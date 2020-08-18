@@ -9,7 +9,7 @@
 # Description:
 ### END INIT INFO
 
-. /etc/default/rcS
+test -e /etc/default/rcS && . /etc/default/rcS
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
