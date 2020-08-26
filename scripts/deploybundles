@@ -1,0 +1,64 @@
+#!/bin/bash -x
+
+die() {
+    echo "$@" >&2
+    exit 1
+}
+
+bitbake_var() {
+    set -e
+    cd "${BUILDPATH}"
+    bitbake -e system-image 2>&1 | egrep "^($@)="
+}
+
+set -x
+
+APPLY_TIMESTAMP=${APPLY_TIMESTAMP:-"null"}
+UPDATABLE_BUNDLE_DEPLOY_BASE=${UPDATABLE_BUNDLE_DEPLOY_BASE:-"/var/www/vhost/update.server.lan"}
+
+RECIPE_DIR="$(dirname $0)"
+while [ ! -d "${RECIPE_DIR}/conf" ];
+do
+    RECIPE_DIR="$(dirname ${RECIPE_DIR})"
+done
+test -z "${OEROOT}" && OEROOT=$(readlink -f ${RECIPE_DIR}/../poky)
+. ${OEROOT}/scripts/oe-init-bashrc
+
+DEPLOY_DIR_IMAGE_BASE="tmp/deploy/images"
+MACHINES="$(ls ${DEPLOY_DIR_IMAGE_BASE})"
+
+for MACHINE in ${MACHINES}
+do
+    DEPLOY_DIR_IMAGE="${DEPLOY_DIR_IMAGE_BASE}/${MACHINE}"
+
+    BUNDLE_MANIFEST=$(ls ${DEPLOY_DIR_IMAGE}/.updatable-images-bundle-*-${MACHINE}-manifest)
+    BUNDLE_VERSION=${BUNDLE_VERSION:-$(. ${BUNDLE_MANIFEST}; echo ${VERSION})}
+    WANTED_ROOT_DEV=${WANTED_ROOT_DEV:-$(. ${BUNDLE_MANIFEST}; echo ${WANTED_ROOT_DEV})}
+
+    BUNDLE_SPC=""
+    for BUNDLE in ${DEPLOY_DIR_IMAGE}/*-${WANTED_ROOT_DEV}-${MACHINE}-${BUNDLE_VERSION}-*.sfsuc
+    do
+	MANISPC=""
+        BUNDLE=$(echo ${BUNDLE} | sed -e "s,${DEPLOY_DIR_IMAGE_BASE}/,,")
+        NAME=$(echo ${BUNDLE} | sed -e "s,updatable-,," -e "s,-bundle-.*\.sfsuc,," -e 's,-,+,g')
+	MANI="${MANI}${MANISPC}\"${NAME}\": \"${BUNDLE}\""
+	MANISPC=",
+	"
+	BUNDLE_LIST="${BUNDLE_LIST}${BUNDLE_SPC}${BUNDLE}"
+	BUNDLE_SPC=" "
+    done
+done
+
+APPLY_TIMESTAMP_ISO="$APPLY_TIMESTAMP"
+test "x$APPLY_TIMESTAMP" = "xnull" || APPLY_TIMESTAMP_ISO="\"$(date -d "${APPLY_TIMESTAMP}" --iso-8601=seconds | sed -e 's/+.*//g')\""
+
+MANIFEST="{
+    \"${BUNDLE_VERSION}\": {
+        ${MANI},
+        \"apply\": ${APPLY_TIMESTAMP_ISO}
+    }
+}"
+
+mkdir -p ${UPDATABLE_BUNDLE_DEPLOY_BASE}/nightly
+echo "${MANIFEST}" > ${UPDATABLE_BUNDLE_DEPLOY_BASE}/nightly/manifest.json
+(cd ${DEPLOY_DIR_IMAGE_BASE} && tar cf - ${BUNDLE_LIST}) | (cd ${UPDATABLE_BUNDLE_DEPLOY_BASE}/nightly && tar xf -)

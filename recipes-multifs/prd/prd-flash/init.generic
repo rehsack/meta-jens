@@ -1,9 +1,20 @@
+require_update_uboot () {
+    $(echo "@BOOTABLE_ROOT_DEVS@" | egrep -q -E "\<${WANTED_ROOT_DEV}\>") || return 1
+    if test "@INTERNAL_ROOT_DEV@" = "${WANTED_ROOT_DEV}"
+    then
+        installed_sysimg_version=`fw_printenv -n sysimg_version`
+        test -z "${installed_sysimg_version}" && return 0
+        $(perl -Mversion -e 'exit(version->parse("'${U_BOOT_MIN_SYSIMG_VER}'") <= version->parse("'${installed_sysimg_version}'"))') || return 1
+    fi
+    return 0
+}
+
 trigger_error () {
     exit 1
 }
 
 trigger_fail () {
-    poweroff
+    # poweroff
     exit 1 # safety first
 }
 
