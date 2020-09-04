@@ -9,7 +9,7 @@ tmpfs                /var/volatile        tmpfs      nodev,nosuid,size=256M 0  0
 
 # uncomment this if your device has a SD/MMC/Transflash slot
 #/dev/mmcblk0p1       /media/card          auto       defaults,sync,noauto  0  0
-/dev/@DEV_PFX@1	/boot		ext2	noauto			1 2
+/dev/@DEV_PFX@1	/boot		ext4	noauto			1 2
 /dev/@DEV_PFX@4	/data		ext4	defaults		1 2
 @overlay@	/etc	overlay	noauto,metacopy=on,lowerdir=/etc,upperdir=/data/.shadow/.etc,workdir=/data/.work/.etc	0 0
 @overlay@	/home	overlay	noauto,metacopy=on,lowerdir=/home,upperdir=/data/.shadow/.home,workdir=/data/.work/.home	0 0
