@@ -37,6 +37,14 @@ NO_ASH_SRC_URI = "\
     file://no-ash.cfg \
 "
 
+BASH_ASH_SRC_URI = "\
+    file://bash-ash.cfg \
+"
+
+FANCY_HEAD_SRC_URI = "\
+    file://fancy-head.cfg \
+"
+
 NO_IFCONFIG_SRC_URI = "\
     file://no-if-sysctl.cfg \
 "
@@ -69,6 +77,8 @@ PACKAGECONFIG_DEBUG_TWEAKS = "${@bb.utils.contains("IMAGE_FEATURES", 'debug-twea
 PACKAGECONFIG_WIFI_AUTO = "${@bb.utils.contains("MACHINE_FEATURES", 'wifi', 'wifi-choose', '', d )}"
 
 PACKAGECONFIG ?= "\
+    bash-ash \
+    fancy-head \
     network-setup \
     ${PACKAGECONFIG_DEBUG_TWEAKS} \
     ${PACKAGECONFIG_WIFI_AUTO} \
@@ -83,6 +93,8 @@ PACKAGECONFIG[debug-tweaks] = ""
 PACKAGECONFIG[network-setup] = ""
 PACKAGECONFIG[wifi-choose] = ""
 PACKAGECONFIG[no-ash] = ""
+PACKAGECONFIG[bash-ash] = ""
+PACKAGECONFIG[fancy-head] = ""
 PACKAGECONFIG[no-ifconfig] = ""
 PACKAGECONFIG[no-mknod] = ""
 PACKAGECONFIG[no-procps] = ""
@@ -94,6 +106,8 @@ PACKAGECONFIG[no-util-linux] = ""
 SRC_URI += "${@bb.utils.contains("PACKAGECONFIG", 'debug-tweaks', '  ', '', d )}"
 SRC_URI += "${@bb.utils.contains("PACKAGECONFIG", 'network-setup', ' ${NETWORK_SETUP_SRC_URI} ', '', d )}"
 SRC_URI += "${@bb.utils.contains("PACKAGECONFIG", 'wifi-choose', ' ${WIFI_ETH_AUTO_ENABLE_SRC_URI} ', '', d )}"
+SRC_URI += "${@bb.utils.contains("PACKAGECONFIG", 'fancy-head', ' ${FANCY_HEAD_SRC_URI} ', '', d )}"
+SRC_URI += "${@bb.utils.contains("PACKAGECONFIG", 'bash-ash', ' ${BASH_ASH_SRC_URI} ', '', d )}"
 SRC_URI += "${@bb.utils.contains("PACKAGECONFIG", 'no-ash', ' ${NO_ASH_SRC_URI} ', '', d )}"
 SRC_URI += "${@bb.utils.contains("PACKAGECONFIG", 'no-procps', ' ${NO_PROCPS_SRC_URI} ', '', d )}"
 SRC_URI += "${@bb.utils.contains("PACKAGECONFIG", 'no-realpath', ' ${NO_REALPATH_SRC_URI} ', '', d )}"
