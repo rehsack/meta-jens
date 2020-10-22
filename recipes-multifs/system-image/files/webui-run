@@ -1,0 +1,15 @@
+#!/bin/sh
+
+: ${PLACK_APP:="@SYSUPDATE_WEBUI_BASE@/bin/system-image-update-web"}
+: ${PLACK_ENV:="production"}
+: ${PLACK_PORT:=8081}
+: ${PLACK_SERVER:="Net::Async::HTTP::Server"}
+: ${OPTIONS:="--server ${PLACK_SERVER} --env ${PLACK_ENV} --listen :${PLACK_PORT} ${PLACK_APP}"}
+: ${PIDFILE:="/run/@SERVICE_NAME@.pid"}
+: ${SYSTEM_IMAGE_UPDATE_DIR:='@SYSTEM_IMAGE_UPDATE_DIR@'}
+: ${RECORD_INSTALLED_DIR:="@RECORD_INSTALLED_DEST@"}
+
+mkdir -p ${SYSTEM_IMAGE_UPDATE_DIR}
+export SYSTEM_IMAGE_UPDATE_DIR RECORD_INSTALLED_DIR
+
+exec start-stop-daemon -m --start --quiet --pidfile "$PIDFILE" --exec plackup -- $OPTIONS 2>&1

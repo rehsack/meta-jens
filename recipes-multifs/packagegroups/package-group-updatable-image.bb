@@ -24,4 +24,5 @@ RDEPENDS_${PN}-base = "\
 RDEPENDS_${PN}-fetcher = "\
 	${PN}-base \
 	system-image-update \
+	system-image-update-webui \
 "
