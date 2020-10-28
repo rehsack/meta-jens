@@ -10,14 +10,16 @@ HOMEPAGE=	"https://github.com/rehsack/System-Image-Update"
 
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Artistic-2.0;md5=8bbc66f0ba93cec26ef526117e280266 \
 "
-SRC_URI = "git://github.com/rehsack/System-Image-Update.git;rev=6cab03cc59412c12cacc67c3095e4e73ac791513 \
-           file://run \
+SRCREV = "56e68ca4e55ac6d8454d6aa12d84bf759b9f6642"
+SRC_URI = "git://github.com/rehsack/System-Image-Update.git \
+           file://dlsrv-run \
 	   file://sysimg-update.json \
 	   file://sysimg-update.properties \
 	   file://system-image-update-logrotate.conf \
 "
 
 RDEPENDS_${PN} += "archive-peek-libarchive-perl"
+RDEPENDS_${PN} += "capture-tiny-perl"
 RDEPENDS_${PN} += "class-load-perl"
 RDEPENDS_${PN} += "crypt-ripemd160-perl"
 RDEPENDS_${PN} += "datetime-format-strptime-perl"
@@ -44,9 +46,10 @@ DEPENDS += "test-pod-perl"
 
 S = "${WORKDIR}/git"
 
-inherit cpan supervised record-installed-query
+inherit cpan supervised record-installed-app
 
 SERVICE_NAME = "sysimg-update"
+SERVICE_RUN_SCRIPT_NAME_${PN} = "dlsrv-run"
 SERVICE_LOG_SCRIPT_NAME = "log.run"
 
 SYSTEM_IMAGE_UPDATE_DIR = "/data/.update"
@@ -61,7 +64,8 @@ do_compile_append() {
 	    -e "s,@SYSTEM_IMAGE_UPDATE_DIR[@],${SYSTEM_IMAGE_UPDATE_DIR},g" \
 	    -e "s,@SYSTEM_IMAGE_UPDATE_FLASH_DIR[@],${SYSTEM_IMAGE_UPDATE_FLASH_DIR},g" \
 	    -e "s,@RECORD_INSTALLED_DEST[@],${RECORD_INSTALLED_DEST},g" \
-	    ${WORKDIR}/run ${WORKDIR}/sysimg-update.json
+	    -e "s,@PROVE_FUNCTIONS[@],${libexecdir}/flash-device/algorithms,g" \
+	    ${WORKDIR}/${SERVICE_RUN_SCRIPT_NAME_${PN}} ${WORKDIR}/sysimg-update.json
 }
 
 do_install_append() {
