@@ -14,7 +14,8 @@ bitbake_var() {
 set -x
 
 APPLY_TIMESTAMP=${APPLY_TIMESTAMP:-"null"}
-UPDATABLE_BUNDLE_DEPLOY_BASE=${UPDATABLE_BUNDLE_DEPLOY_BASE:-"/var/www/vhost/update.server.lan"}
+UPDATABLE_BUNDLE_DEPLOY_BASE=${UPDATABLE_BUNDLE_DEPLOY_BASE:-"/var/www/vhost"}
+UPDATABLE_BUNDLE_DEPLOY_TARGETS=${UPDATABLE_BUNDLE_DEPLOY_TARGETS:-"update.server.lan"}
 
 RECIPE_DIR="$(dirname $0)"
 while [ ! -d "${RECIPE_DIR}/conf" ];
@@ -24,14 +25,14 @@ done
 test -z "${OEROOT}" && OEROOT=$(readlink -f ${RECIPE_DIR}/../poky)
 . ${OEROOT}/scripts/oe-init-bashrc
 
-DEPLOY_DIR_IMAGE_BASE="tmp/deploy/images"
+DEPLOY_DIR_IMAGE_BASE="${BUILDDIR}/tmp/deploy/images"
 MACHINES="$(ls ${DEPLOY_DIR_IMAGE_BASE})"
 
 for MACHINE in ${MACHINES}
 do
     DEPLOY_DIR_IMAGE="${DEPLOY_DIR_IMAGE_BASE}/${MACHINE}"
 
-    BUNDLE_MANIFEST=$(ls ${DEPLOY_DIR_IMAGE}/.updatable-images-bundle-*-${MACHINE}-manifest)
+    BUNDLE_MANIFEST=$(ls ${DEPLOY_DIR_IMAGE}/.updatable-*-bundle-*-${MACHINE}-manifest)
     BUNDLE_VERSION=${BUNDLE_VERSION:-$(. ${BUNDLE_MANIFEST}; echo ${VERSION})}
     WANTED_ROOT_DEV=${WANTED_ROOT_DEV:-$(. ${BUNDLE_MANIFEST}; echo ${WANTED_ROOT_DEV})}
 
@@ -59,6 +60,9 @@ MANIFEST="{
     }
 }"
 
-mkdir -p ${UPDATABLE_BUNDLE_DEPLOY_BASE}/nightly
-echo "${MANIFEST}" > ${UPDATABLE_BUNDLE_DEPLOY_BASE}/nightly/manifest.json
-(cd ${DEPLOY_DIR_IMAGE_BASE} && tar cf - ${BUNDLE_LIST}) | (cd ${UPDATABLE_BUNDLE_DEPLOY_BASE}/nightly && tar xf -)
+for TARGET in ${UPDATABLE_BUNDLE_DEPLOY_TARGETS}
+do
+    mkdir -p ${UPDATABLE_BUNDLE_DEPLOY_BASE}/${TARGET}/nightly
+    echo "${MANIFEST}" > ${UPDATABLE_BUNDLE_DEPLOY_BASE}/${TARGET}/nightly/manifest.json
+    (cd ${DEPLOY_DIR_IMAGE_BASE} && tar cf - ${BUNDLE_LIST}) | (cd ${UPDATABLE_BUNDLE_DEPLOY_BASE}/${TARGET}/nightly && tar xf -)
+done

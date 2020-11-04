@@ -29,7 +29,7 @@ set -e
 
 oe_builddir use $BUILDPATH
 
-REPOS=`oe_builddir repos`
+REPOS=$(oe_builddir repos)
 for d in ${REPOS}
 do
     cd $d
@@ -47,12 +47,12 @@ git log -n 1 | grep "bump.*${SYSIMG_VERSION}" && die "Image is up to date"
 
 oe_builddir prune
 cd "${BUILDPATH}"
-mkdeployimgs "$@"
-time env APPLY_TS=null TARGETS="update.homepilot.de" deployimgs
+time bitbake "$@"
+time deploybundles "$@"
 
 # bump
-PS=`printf 'my @v = split(/\./, "%s"); $v[$#v]++; print join( ".", @v)\n' "${SYSIMG_VERSION}"`
-SYSIMG_BUMPED=`perl -le "$PS"`
+PS=$(printf 'my @v = split(/\./, "%s"); $v[$#v]++; print join( ".", @v)\n' "${SYSIMG_VERSION}")
+SYSIMG_BUMPED=$(perl -le "$PS")
 
 for d in ${REPOS}
 do
