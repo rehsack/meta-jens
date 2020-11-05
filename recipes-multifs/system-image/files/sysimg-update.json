@@ -1,19 +1,19 @@
 {
     "log_adapter" : [
         "Log4cplus",
-        "config_file", "/etc/sysimg-update.properties",
+        "config_file", "@sysconfdir@/sysimg-update.properties",
         "name", "sysimg-update"
     ],
-    "update_server": "update.poed.de",
-    "update_path": "@MACHINE@",
-    "update_manifest_basename" : "manifest-1.0.json",
-    "update_manifest_dirname": "@SYSTEM_IMAGE_UPDATE_DIR@",
+    "update_server": "@SYSTEM_IMAGE_UPDATE_DOWNLOAD_SERVER@",
+    "update_path": "@SYSTEM_IMAGE_UPDATE_DOWNLOAD_PATH@",
+    "update_manifest_basename" : "@SYSTEM_IMAGE_UPDATE_MANIFEST_BASENAME@",
+    "update_manifest_dirname": "@SYSTEM_IMAGE_UPDATE_STATE_DIR@",
     "download_file_prefix": "@MACHINE@/",
     "image_location": "@SYSTEM_IMAGE_UPDATE_FLASH_DIR@",
-    "flash_command": "/etc/init.d/flash-device",
+    "flash_command": "@SYSTEM_IMAGE_UPDATE_FLASH_COMMAND@",
     "installed_version_file": "@RECORD_INSTALLED_DEST@/system-image",
     "prove_exec": "source @PROVE_FUNCTIONS@; prove_bundle",
-    "prefer_record_installed": [ "system-image-update" ],
+    "prefer_record_installed": [ "@MYSELF@" ],
     "record_installed_location": "@RECORD_INSTALLED_DEST@",
     "record_installed_components_image_separator": ":",
     "record_installed_aliases": {

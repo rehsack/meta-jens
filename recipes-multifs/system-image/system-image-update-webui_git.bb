@@ -16,7 +16,7 @@ SRC_URI = "git://github.com/rehsack/System-Image-Update-WebUI.git \
            file://webui-run \
 "
 
-inherit supervised record-installed-query
+inherit supervised record-installed-query system-image-update
 
 RDEPENDS_${PN} += "system-image-update"
 
@@ -54,12 +54,10 @@ SERVICE_LOG_SCRIPT_NAME = "log.run"
 
 SYSUPDATE_WEBUI_BASE ?= "/opt/${DISTRO}/${SERVICE_NAME}"
 
-SYSTEM_IMAGE_UPDATE_DIR = "/data/.update"
-
 do_compile() {
 	set -x
 	sed -i -e "s,@SERVICE_NAME[@],${SERVICE_NAME},g" -e "s,@SYSUPDATE_WEBUI_BASE[@],${SYSUPDATE_WEBUI_BASE},g" \
-	    -e "s,@SYSTEM_IMAGE_UPDATE_DIR[@],${SYSTEM_IMAGE_UPDATE_DIR},g" \
+	    -e "s,@SYSTEM_IMAGE_UPDATE_STATE_DIR[@],${SYSTEM_IMAGE_UPDATE_STATE_DIR},g" \
 	    -e "s,@RECORD_INSTALLED_DEST[@],${RECORD_INSTALLED_DEST},g" \
 	    ${WORKDIR}/webui-run
 }

@@ -4,6 +4,8 @@ OPN := "${PN}"
 PN = "${OPN}-${WANTED_ROOT_DEV}"
 FILESEXTRAPATHS_prepend := "${THISDIR}/${OPN}:"
 
+inherit system-image-update
+
 include recipes-multifs/prd/${PN}.inc
 
 LICENSE = "GPL-2.0"
@@ -279,8 +281,10 @@ do_compile () {
         UPDATABLE_BUNDLE_SIGN_PUBKEY=${libexecdir}/flash-device/${BUNDLE_SIGN_PUBKEY}
     fi
 
-    sed -i -e "s,@ARGV0@,${sysconfdir}/init.d/flash-device,g" \
-        -e "s,@LIBEXEC[@],${libexecdir}/flash-device,g" -e "s,@WANTED_ROOT_DEV[@],${WANTED_ROOT_DEV},g" \
+    sed -i -e "s,@ARGV0@,${SYSTEM_IMAGE_UPDATE_FLASH_COMMAND},g" \
+        -e "s,@LIBEXEC[@],${SYSTEM_IMAGE_UPDATE_FLASH_LIBEXEC_DIR},g" -e "s,@WANTED_ROOT_DEV[@],${WANTED_ROOT_DEV},g" \
+        -e "s,@SYSTEM_IMAGE_UPDATE_FLASH_DIR[@],${SYSTEM_IMAGE_UPDATE_FLASH_DIR},g" \
+        -e "s,@SYSTEM_IMAGE_UPDATE_DEPLOY_DIR[@],${SYSTEM_IMAGE_UPDATE_DEPLOY_DIR},g" \
         -e "s/@MACHINE[@]/${MACHINE}/g" -e "s,@SIGN_ALGORITHM[@],${UPDATABLE_BUNDLE_SIGN_ALGORITHM},g" \
         -e "s,@SIGN_PUBKEY[@],${UPDATABLE_BUNDLE_SIGN_PUBKEY},g" -e "s/@FLASH_MODE[@]/${FLASH_MODE}/g" \
         -e "s,@NFS_FLASH[@],${NFS_FLASH},g" -e "s,@MANIFEST_NAME[@],${UPDATABLE_BUNDLE_MANIFEST},g" \

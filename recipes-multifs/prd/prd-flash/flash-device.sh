@@ -18,7 +18,7 @@ logger -s "Starting flash ..."
 . @LIBEXEC@/algorithms
 
 # use last found image container
-for bf in /data/.flashimg/*.sfsuc /data/flashimg/*.sfsuc
+for bf in @SYSTEM_IMAGE_UPDATE_FLASH_DIR@/*.sfsuc @SYSTEM_IMAGE_UPDATE_DEPLOY_DIR@/*.sfsuc
 do
     if [ -f "${bf}" ]
     then

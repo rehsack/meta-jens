@@ -5,8 +5,8 @@ SECTION = "libs"
 LICENSE = "Artistic-2.0"
 PR = "r0"
 
-MAINTAINER=	"Jens Rehsack <sno@netbsd.org>"
-HOMEPAGE=	"https://github.com/rehsack/System-Image-Update"
+MAINTAINER = "Jens Rehsack <sno@netbsd.org>"
+HOMEPAGE   = "https://github.com/rehsack/System-Image-Update"
 
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Artistic-2.0;md5=8bbc66f0ba93cec26ef526117e280266 \
 "
@@ -17,6 +17,8 @@ SRC_URI = "git://github.com/rehsack/System-Image-Update.git \
 	   file://sysimg-update.properties \
 	   file://system-image-update-logrotate.conf \
 "
+
+inherit cpan supervised record-installed-app system-image-update
 
 RDEPENDS_${PN} += "archive-peek-libarchive-perl"
 RDEPENDS_${PN} += "capture-tiny-perl"
@@ -46,14 +48,15 @@ DEPENDS += "test-pod-perl"
 
 S = "${WORKDIR}/git"
 
-inherit cpan supervised record-installed-app
-
 SERVICE_NAME = "sysimg-update"
 SERVICE_RUN_SCRIPT_NAME_${PN} = "dlsrv-run"
 SERVICE_LOG_SCRIPT_NAME = "log.run"
 
-SYSTEM_IMAGE_UPDATE_DIR = "/data/.update"
-SYSTEM_IMAGE_UPDATE_FLASH_DIR = "/data/.flashimg"
+DISTRO_BASE_VERSION ??= "${DISTRO_VERSION}"
+
+SYSTEM_IMAGE_UPDATE_DOWNLOAD_SERVER ??= "update.poed.de"
+SYSTEM_IMAGE_UPDATE_DOWNLOAD_PATH ??= "${MACHINE}"
+SYSTEM_IMAGE_UPDATE_MANIFEST_BASENAME ??= "manifest-${DISTRO_BASE_VERSION}.json"
 
 do_configure_append() {
 	oe_runmake manifest
@@ -61,11 +64,17 @@ do_configure_append() {
 
 do_compile_append() {
 	sed -i -e "s,@SERVICE_NAME[@],${SERVICE_NAME},g" -e "s/@MACHINE[@]/${MACHINE}/g" \
-	    -e "s,@SYSTEM_IMAGE_UPDATE_DIR[@],${SYSTEM_IMAGE_UPDATE_DIR},g" \
+	    -e "s,@MYSELF[@],${PN},g" \
+	    -e "s,@SYSTEM_IMAGE_UPDATE_STATE_DIR[@],${SYSTEM_IMAGE_UPDATE_STATE_DIR},g" \
 	    -e "s,@SYSTEM_IMAGE_UPDATE_FLASH_DIR[@],${SYSTEM_IMAGE_UPDATE_FLASH_DIR},g" \
+	    -e "s,@SYSTEM_IMAGE_UPDATE_DOWNLOAD_SERVER[@],${SYSTEM_IMAGE_UPDATE_DOWNLOAD_SERVER},g" \
+	    -e "s,@SYSTEM_IMAGE_UPDATE_DOWNLOAD_PATH[@],${SYSTEM_IMAGE_UPDATE_DOWNLOAD_PATH},g" \
+	    -e "s,@SYSTEM_IMAGE_UPDATE_MANIFEST_BASENAME[@],${SYSTEM_IMAGE_UPDATE_MANIFEST_BASENAME},g" \
 	    -e "s,@RECORD_INSTALLED_DEST[@],${RECORD_INSTALLED_DEST},g" \
-	    -e "s,@PROVE_FUNCTIONS[@],${libexecdir}/flash-device/algorithms,g" \
-	    ${WORKDIR}/${SERVICE_RUN_SCRIPT_NAME_${PN}} ${WORKDIR}/sysimg-update.json
+	    -e "s,@PROVE_FUNCTIONS[@],${SYSTEM_IMAGE_UPDATE_FLASH_LIBEXEC_DIR}/algorithms,g" \
+	    -e "s,@locallogbase[@],${localstatedir}/log,g" -e "s,@sysconfdir[@],${sysconfdir},g" \
+	    ${WORKDIR}/${SERVICE_RUN_SCRIPT_NAME_${PN}} ${WORKDIR}/sysimg-update.json \
+	    ${WORKDIR}/sysimg-update.properties
 }
 
 do_install_append() {

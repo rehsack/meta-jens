@@ -1,0 +1,5 @@
+SYSTEM_IMAGE_UPDATE_DEPLOY_DIR = "/data/flashimg"
+SYSTEM_IMAGE_UPDATE_FLASH_DIR = "/data/.flashimg"
+SYSTEM_IMAGE_UPDATE_STATE_DIR = "/data/.update"
+SYSTEM_IMAGE_UPDATE_FLASH_COMMAND = "${sysconfdir}/init.d/flash-device"
+SYSTEM_IMAGE_UPDATE_FLASH_LIBEXEC_DIR = "${libexecdir}/flash-device"
