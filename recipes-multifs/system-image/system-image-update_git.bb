@@ -10,7 +10,7 @@ HOMEPAGE   = "https://github.com/rehsack/System-Image-Update"
 
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Artistic-2.0;md5=8bbc66f0ba93cec26ef526117e280266 \
 "
-SRCREV = "fcc11388f870efd3a79074a1ea4afeecf4edbb58"
+SRCREV = "c58b841a0fe6dc6a7065295ee19df60455ddeef5"
 SRC_URI = "git://github.com/rehsack/System-Image-Update.git \
            file://dlsrv-run \
 	   file://sysimg-update.json \
@@ -67,6 +67,7 @@ do_compile_append() {
 	    -e "s,@MYSELF[@],${PN},g" \
 	    -e "s,@SYSTEM_IMAGE_UPDATE_STATE_DIR[@],${SYSTEM_IMAGE_UPDATE_STATE_DIR},g" \
 	    -e "s,@SYSTEM_IMAGE_UPDATE_FLASH_DIR[@],${SYSTEM_IMAGE_UPDATE_FLASH_DIR},g" \
+	    -e "s,@SYSTEM_IMAGE_UPDATE_FLASH_COMMAND[@],${SYSTEM_IMAGE_UPDATE_FLASH_COMMAND},g" \
 	    -e "s,@SYSTEM_IMAGE_UPDATE_DOWNLOAD_SERVER[@],${SYSTEM_IMAGE_UPDATE_DOWNLOAD_SERVER},g" \
 	    -e "s,@SYSTEM_IMAGE_UPDATE_DOWNLOAD_PATH[@],${SYSTEM_IMAGE_UPDATE_DOWNLOAD_PATH},g" \
 	    -e "s,@SYSTEM_IMAGE_UPDATE_MANIFEST_BASENAME[@],${SYSTEM_IMAGE_UPDATE_MANIFEST_BASENAME},g" \
