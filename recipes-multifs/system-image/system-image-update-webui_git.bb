@@ -10,10 +10,11 @@ HOMEPAGE=	"https://github.com/rehsack/System-Image-Update-WebUI"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Artistic-2.0;md5=8bbc66f0ba93cec26ef526117e280266 \
 "
 
-SRCREV="a551a29646c4b1cbd01b01068b4cb535f7b1f006"
+SRCREV="1ed79d5075037b3fdc26fab02ebd1f318b9c8121"
 
 SRC_URI = "git://github.com/rehsack/System-Image-Update-WebUI.git \
            file://webui-run \
+	   file://system-image-update-web.json \
 "
 
 inherit supervised record-installed-query system-image-update
@@ -64,6 +65,10 @@ do_compile() {
 
 do_install() {
 	set -x
+
+	install -d -m 755 ${D}${sysconfdir}
+	install -m 0644 ${WORKDIR}/system-image-update-web.json ${D}${sysconfdir}
+
 	# create directory for source
 	install -d ${D}${SYSUPDATE_WEBUI_BASE}
 
