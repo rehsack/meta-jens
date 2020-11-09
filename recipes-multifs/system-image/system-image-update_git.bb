@@ -10,7 +10,7 @@ HOMEPAGE   = "https://github.com/rehsack/System-Image-Update"
 
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Artistic-2.0;md5=8bbc66f0ba93cec26ef526117e280266 \
 "
-SRCREV = "56e68ca4e55ac6d8454d6aa12d84bf759b9f6642"
+SRCREV = "fcc11388f870efd3a79074a1ea4afeecf4edbb58"
 SRC_URI = "git://github.com/rehsack/System-Image-Update.git \
            file://dlsrv-run \
 	   file://sysimg-update.json \
