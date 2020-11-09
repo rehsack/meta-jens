@@ -1,0 +1,5 @@
+{
+    "log_adapter" : [
+        "name", "sysimg-rest"
+    ]
+}
