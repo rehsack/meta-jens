@@ -24,6 +24,7 @@ test -z "${OEROOT}" && OEROOT=$(readlink -f ${RECIPE_DIR}/../poky)
 . ${OEROOT}/scripts/oe-init-bashrc
 
 DEPLOY_DIR_IMAGE_BASE="${BUILDDIR}/tmp/deploy/images"
+DEPLOY_DIR_SDK_BASE="${BUILDDIR}/tmp/deploy/sdk"
 MACHINES="$(ls ${DEPLOY_DIR_IMAGE_BASE})"
 
 MANISPC=""
