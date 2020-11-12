@@ -26,6 +26,7 @@ test -z "${OEROOT}" && OEROOT=$(readlink -f ${RECIPE_DIR}/../poky)
 DEPLOY_DIR_IMAGE_BASE="${BUILDDIR}/tmp/deploy/images"
 MACHINES="$(ls ${DEPLOY_DIR_IMAGE_BASE})"
 
+MANISPC=""
 for MACHINE in ${MACHINES}
 do
     DEPLOY_DIR_IMAGE="${DEPLOY_DIR_IMAGE_BASE}/${MACHINE}"
@@ -37,7 +38,6 @@ do
     BUNDLE_SPC=""
     for BUNDLE in ${DEPLOY_DIR_IMAGE}/*-${WANTED_ROOT_DEV}-${MACHINE}-${BUNDLE_VERSION}-*.sfsuc
     do
-	MANISPC=""
         BUNDLE=$(echo ${BUNDLE} | sed -e "s,${DEPLOY_DIR_IMAGE_BASE}/,,")
         NAME=$(echo ${BUNDLE} | sed -e "s,updatable-,," -e "s,-bundle-.*\.sfsuc,," -e 's,-,+,g')
 	MANI="${MANI}${MANISPC}\"${NAME}\": \"${BUNDLE}\""
