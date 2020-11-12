@@ -14,8 +14,6 @@ bitbake_var() {
 set -x
 
 APPLY_TIMESTAMP=${APPLY_TIMESTAMP:-"null"}
-UPDATABLE_BUNDLE_DEPLOY_BASE=${UPDATABLE_BUNDLE_DEPLOY_BASE:-"/var/www/vhost"}
-UPDATABLE_BUNDLE_DEPLOY_TARGETS=${UPDATABLE_BUNDLE_DEPLOY_TARGETS:-"update.server.lan"}
 
 RECIPE_DIR="$(dirname $0)"
 while [ ! -d "${RECIPE_DIR}/conf" ];
