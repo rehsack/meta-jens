@@ -1,0 +1,125 @@
+#!/bin/bash
+
+SCRIPT="$0"
+
+help() {
+    test -n "$1" && echo "$@"
+    cat <<EOH
+$SCRIPT -b <BRANCH> -f <FALLBACK_BRANCH> -d <BUILDDIR> -t <BB_TARGETS> -t <BB_TARGETS>
+    -r <RECIPE_FOR_VARIABLES> [-v] | -h | -u
+	-b: specify branch to be build -- falls back to master when doesn't
+	    exists for that repository
+	-f: specify fallback branch when \`-b\` one doesn't exists for repository
+	-d: specify full qualified path to build directory
+	-t: specify targets (recipes) to be built by bitbake
+	-r: specify recipe to be used to fetch variables (e.g. release version)
+	-p: prune builddir before starting a new build
+	-v: verbosity on
+	-h: show help
+	-u: show usage
+EOH
+    exit 0
+}
+
+usage() {
+    test -n "$1" && echo "$@"
+    cat <<EOH
+$0 -b <BRANCH> -f <FALLBACK_BRANCH> -d <BUILDDIR> -t <BB_TARGETS> -t <BB_TARGETS>
+    -r <RECIPE_FOR_VARIABLES> [-v] | -h | -u
+EOH
+    exit 0
+}
+
+set -x
+
+: ${VERBOSE:="0"}
+: ${FALLBACK_BRANCH:="master"}
+: ${VAR_RECIPE:="system-image"}
+: ${BUILDPATH:=${BUILDDIR}}
+: ${PRUNE:="0"}
+ 
+declare -a _BB_EXTRA_TARGETS
+
+while getopts "huvVpb:f:d:r:t:" o
+do
+	case "${o}" in
+	b)
+		BRANCH=${OPTARG}
+		;;
+	f)
+		FALLBACK_BRANCH=${OPTARG}
+		;;
+	r)
+		VAR_RECIPE=${OPTARG}
+		;;
+	d)
+		BUILDPATH=${OPTARG}
+		;;
+	t)
+		case "${OPTARG}" in
+		[_a-zA-Z]*\ -*)
+			_BB_EXTRA_TARGETS[${#_BB_EXTRA_TARGETS[*]}]="${OPTARG}"
+			;;
+		*)
+			BB_TARGETS="${BB_TARGETS}${BB_SPC}${OPTARG}"
+			BB_SPC=" "
+			;;
+		esac
+		;;
+	p)
+		PRUNE="1"
+		;;
+	v)
+		VERBOSE="1"
+		;;
+	h)
+		help
+		;;
+	*)
+		usage
+		;;
+	esac
+done
+shift $((OPTIND-1))
+
+test -z "${BRANCH}" && help "Missing <BRANCH>"
+test -z "${BUILDPATH}" && help "Missing <BUILDPATH>"
+test -d "${BUILDPATH}" -a -x "${BUILDPATH}" || help "'${BUILDPATH}' must be an accessible directory"
+
+: ${RECIPE_DIR:="$(dirname $0)"}
+while [ ! -d "${RECIPE_DIR}/conf" ];
+do
+    RECIPE_DIR="`dirname ${RECIPE_DIR}`"
+done
+test -z "${OEROOT}" && OEROOT=$(readlink -f ${RECIPE_DIR}/../poky)
+. ${OEROOT}/scripts/oe-init-bashrc
+
+: ${DISTRO_NAME:=${DISTRO_NAME:-"$(basename ${RECIPE_DIR} | sed -e 's,meta-,,')"}}
+: ${DISTRO_VERSION_FILE:="conf/distro/${DISTRO_NAME}.conf"}
+: ${DISTRO_VERSION_PATH:="${RECIPE_DIR}/${DISTRO_VERSION_FILE}"}
+
+set -e
+
+oe_builddir use ${BUILDPATH}
+oe_builddir rebase-repos ${BRANCH}
+test "x${PRUNE}" != "x0" && oe_builddir prune
+
+BITBAKE_SETTINGS=$(__oe_bb_var "PV|BSPDIR" | sed -e "s/PV/SYSIMG_VERSION/")
+eval $BITBAKE_SETTINGS
+
+: ${MACHINES:="$(basename --multiple --suffix=.conf ${RECIPE_DIR}/conf/machine/*.conf)"}
+echo $MACHINES
+
+cd "${BUILDPATH}"
+
+for MACHINE in ${MACHINES}
+do
+	export MACHINE
+	time bitbake ${BB_TARGETS}
+	for _bbi in $(seq 0 $(expr ${#_BB_EXTRA_TARGETS[*]} - 1));
+	do
+		time bitbake ${_BB_EXTRA_TARGETS[$_bbi]}
+	done
+done
+
+
