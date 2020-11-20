@@ -1,16 +1,5 @@
 #!/bin/bash -x
 
-die() {
-    echo "$@" >&2
-    exit 1
-}
-
-bitbake_var() {
-    set -e
-    cd "${BUILDPATH}"
-    bitbake -e system-image 2>&1 | egrep "^($@)="
-}
-
 set -x
 
 APPLY_TIMESTAMP=${APPLY_TIMESTAMP:-"null"}
