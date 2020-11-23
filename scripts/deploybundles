@@ -4,11 +4,13 @@ set -x
 
 APPLY_TIMESTAMP=${APPLY_TIMESTAMP:-"null"}
 
-RECIPE_DIR="$(dirname $0)"
-while [ ! -d "${RECIPE_DIR}/conf" ];
+: ${RECIPE_DIR:="$(dirname $0)"}
+while [ ! -d "${RECIPE_DIR}/conf" -a  -d "${RECIPE_DIR}/conf/machine" ];
 do
     RECIPE_DIR="$(dirname ${RECIPE_DIR})"
 done
+test -d "${RECIPE_DIR}/conf" -a  -d "${RECIPE_DIR}/conf/machine" || __oe_die "Cannot find proper machine configuration"
+export RECIPE_DIR
 test -z "${OEROOT}" && OEROOT=$(readlink -f ${RECIPE_DIR}/../poky)
 . ${OEROOT}/scripts/oe-init-bashrc
 
