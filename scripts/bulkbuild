@@ -160,11 +160,11 @@ deploybundles () {
 	    }
 	}"
 
-	REPOS=$(oe_builddir repos)
-	for d in ${REPOS}
+        test "${#_OE_GITREPOS[*]}" -gt 0 || __oe_guess_repos
+        for _li in $(seq 0 $(expr ${#_OE_GITREPOS[*]} - 1))
 	do
-	    test -d ${d}/scripts/deploybundles.d || continue
-	    for dbd in ${d}/scripts/deploybundles.d/*
+	    test -d ${_OE_GITREPOS[$_li]}/scripts/deploybundles.d || continue
+	    for dbd in ${_OE_GITREPOS[$_li]}/scripts/deploybundles.d/*
 	    do
 		source $dbd
 	    done
