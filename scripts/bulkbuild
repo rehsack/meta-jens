@@ -101,7 +101,7 @@ bulkbuild () {
 
 	set -e
 
-	test "${BULKREBASE}" = "done" || oe_builddir rebase-repos ${BRANCH}
+	test "${BULKREBASE}" = "done" || __oe_repository_rebase ${BRANCH}
 	BULKREBASE="done"
 	test "x${PRUNE4BULK}" != "x0" && oe_builddir prune
 
@@ -185,7 +185,8 @@ releasebuild () {
 	: ${DISTRO_VERSION_PATH:="${DISTRO_REPO_DIR}/${DISTRO_VERSION_FILE}"}
 	test -f ${DISTRO_VERSION_PATH} -a -w ${DISTRO_VERSION_PATH} || __oe_die "Cannot access '${DISTRO_VERSION_PATH}' for updating"
 
-	test "${BULKREBASE}" = "done" || oe_builddir rebase-repos ${BRANCH}
+	test "${BULKREBASE}" = "done" || __oe_repository_rebase ${BRANCH}
+	test "$_OE_REPOSITORIES_CHANGED" = "1" && return 42
 	BULKREBASE="done"
 
 	cd "${DISTRO_REPO_DIR}"
@@ -221,7 +222,8 @@ devbuild () {
 	test -z "${BRANCH}" && help "Missing <BRANCH>"
 
 	# for first shot we assume, primary and secondary branches are to use
-	oe_builddir rebase-repos ${BRANCH} "true"
+	__oe_repository_rebase ${BRANCH} "true"
+	test "$_OE_REPOSITORIES_CHANGED" = "1" && return 42
 	BULKREBASE="done"
 
 	unset RELEASE_BUILD_RUNNING RELEASE_BUILD_SUCCEEDED
@@ -250,6 +252,10 @@ eval $BITBAKE_SETTINGS
 case $SCRIPT in
 	bulkbuild|deploybundles|releasebuild|devbuild)
 		eval $SCRIPT
+		if test "$?" = "42"
+		then
+			exec "$0" "$@"
+		fi
 		;;
 	*)
 		__oe_die "Unsupported deploy component: $SCRIPT"
