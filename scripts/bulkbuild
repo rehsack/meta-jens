@@ -199,14 +199,22 @@ releasebuild () {
 	PS=$(printf 'my @v = split(/\./, "%s"); $v[$#v]++; print join( ".", @v)\n' "${SYSIMG_VERSION}")
 	SYSIMG_BUMPED=$(perl -le "$PS")
 
-	for d in ${REPOS}
+        for _li in $(seq 0 $(expr ${#_OE_GITREPOS[*]} - 1))
 	do
-	    cd "$d"
-	    git tag "${DISTRO_NAME}-${SYSIMG_VERSION}" && git push && git push --tags || :
+	    cd "${_OE_GITREPOS[$_li]}"
+	    git push
 	done
 
-	(cd "${DISTRO_REPO_DIR}" && sed -i -e "s/${SYSIMG_VERSION}/${SYSIMG_BUMPED}/" "${DISTRO_VERSION_FILE}")
-	(cd "${DISTRO_REPO_DIR}" && git commit -m "bump version after release to ${SYSIMG_BUMPED}" "${DISTRO_VERSION_FILE}" && git push)
+        for _li in $(seq 0 $(expr ${#_OE_GITREPOS[*]} - 1))
+	do
+	    cd "${_OE_GITREPOS[$_li]}"
+	    git tag "${DISTRO_NAME}-${SYSIMG_VERSION}" && git push --tags || :
+	done
+
+	cd "${DISTRO_REPO_DIR}"
+	sed -i -e "s/${SYSIMG_VERSION}/${SYSIMG_BUMPED}/" "${DISTRO_VERSION_FILE}"
+	git commit -m "bump version after release to ${SYSIMG_BUMPED}" "${DISTRO_VERSION_FILE}"
+	git push
 }
 
 devbuild () {
