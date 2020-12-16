@@ -7,8 +7,9 @@ help() {
     test -n "$1" && echo "$@"
     cat <<EOH
 $SCRIPT -b <BRANCH> -d <BUILDDIR> -D <DISTRO_REPO_DIR> -t <BB_TARGETS> -t <BB_TARGETS>
-    -r <RECIPE_FOR_VARIABLES> -a <APPLY_TIMESTAMP> [-v] | -h | -u
+    -r <RECIPE_FOR_VARIABLES> -a <APPLY_TIMESTAMP> -B <BITBAKE_CMD> [-v] | -h | -u
 	-b: specify colon-separated branch(es) to be build -- evaluated from left to right
+	-B: bitbake-cmd (or wrapper), defaults to 'bitbake'
 	-d: specify full qualified path to build directory
 	-D: specify full qualified path of distribution repository
 	-t: specify targets (recipes) to be built by bitbake
@@ -26,7 +27,7 @@ usage() {
     test -n "$1" && echo "$@"
     cat <<EOH
 $SCRIPT -b <BRANCH> -d <BUILDDIR> -D <DISTRO_REPO_DIR> -t <BB_TARGETS> -t <BB_TARGETS>
-    -r <RECIPE_FOR_VARIABLES> -a <APPLY_TIMESTAMP> [-v] | -h | -u
+    -r <RECIPE_FOR_VARIABLES> -a <APPLY_TIMESTAMP> -B <BITBAKE_CMD> [-v] | -h | -u
 EOH
     exit 0
 }
@@ -38,13 +39,17 @@ set -x
 : ${BUILDPATH:=${BUILDDIR}}
 : ${PRUNE4BULK:="0"}
 : ${APPLY_TIMESTAMP:="null"}
+: ${BITBAKE_CMD:="bitbake"}
  
 declare -a _BB_EXTRA_TARGETS
 
 parseopts () {
-	while getopts "huvVpb:d:D:r:t:a:" o
+	while getopts "huvVpb:B:d:D:r:t:a:" o
 	do
 		case "${o}" in
+		B)
+			BITBAKE_CMD="${OPTARG}"
+			;;
 		b)
 			BRANCH=${OPTARG}
 			;;
@@ -113,10 +118,10 @@ bulkbuild () {
 	for MACHINE in ${MACHINES}
 	do
 		export MACHINE
-		time bitbake ${BB_TARGETS}
+		time ${BITBAKE_CMD} ${BB_TARGETS}
 		for _bbi in $(seq 0 $(expr ${#_BB_EXTRA_TARGETS[*]} - 1));
 		do
-			time bitbake ${_BB_EXTRA_TARGETS[$_bbi]}
+			time ${BITBAKE_CMD} ${_BB_EXTRA_TARGETS[$_bbi]}
 		done
 	done
 }
