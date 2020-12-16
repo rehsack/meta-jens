@@ -244,7 +244,7 @@ test -d "${BUILDPATH}" -a -x "${BUILDPATH}" || help "'${BUILDPATH}' must be an a
 oe_builddir use ${BUILDPATH}
 _default_get_bb_var="PV|BSPDIR|DISTRO"
 _default_sed_bb_var="-e s,PV,SYSIMG_VERSION, -e s,DISTRO,DISTRO_NAME,"
-test -z "${WANTED_ROOT_DEV}" && _default_get_bb_var="${_default_get_bb_var} WANTED_ROOT_DEV"
+test -z "${WANTED_ROOT_DEV}" && _default_get_bb_var="${_default_get_bb_var}|WANTED_ROOT_DEV"
 
 BITBAKE_SETTINGS=$(__oe_bb_var "${_default_get_bb_var}" | sed ${_default_sed_bb_var} )
 eval $BITBAKE_SETTINGS
