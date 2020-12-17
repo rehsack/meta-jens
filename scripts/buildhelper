@@ -127,9 +127,9 @@ bulkbuild () {
 }
 
 deploybundles () {
-	DEPLOY_DIR_IMAGE_BASE="${BUILDDIR}/tmp/deploy/images"
-	DEPLOY_DIR_SDK_BASE="${BUILDDIR}/tmp/deploy/sdk"
-	MACHINES="$(ls ${DEPLOY_DIR_IMAGE_BASE})"
+	: ${DEPLOY_DIR_IMAGE_BASE:="${DEPLOY_DIR_IMAGES}"}
+	: ${DEPLOY_DIR_SDK_BASE:="${DEPLOY_DIR_SDK}"}
+	: ${MACHINES:="$(ls ${DEPLOY_DIR_IMAGE_BASE})"}
 
 	MANISPC=""
 	BUNDLE_SPC=""
