@@ -247,9 +247,19 @@ test -z "${BUILDPATH}" && help "Missing <BUILDPATH>"
 test -d "${BUILDPATH}" -a -x "${BUILDPATH}" || help "'${BUILDPATH}' must be an accessible directory"
 
 oe_builddir use ${BUILDPATH}
-_default_get_bb_var="PV|BSPDIR|DISTRO"
+_default_get_bb_var="PV|BSPDIR|DISTRO|DEPLOY_DIR|DEPLOY_DIR_IMAGES|DEPLOY_DIR_SDK"
 _default_sed_bb_var="-e s,PV,SYSIMG_VERSION, -e s,DISTRO,DISTRO_NAME,"
 test -z "${WANTED_ROOT_DEV}" && _default_get_bb_var="${_default_get_bb_var}|WANTED_ROOT_DEV"
+
+test "${#_OE_GITREPOS[*]}" -gt 0 || __oe_guess_repos
+for _li in $(seq 0 $(expr ${#_OE_GITREPOS[*]} - 1))
+do
+	test -d ${_OE_GITREPOS[$_li]}/scripts/buildhelper.d || continue
+	for bhd in ${_OE_GITREPOS[$_li]}/scripts/buildhelper.d/*
+	do
+		source $bhd
+	done
+done
 
 BITBAKE_SETTINGS=$(__oe_bb_var "${_default_get_bb_var}" | sed ${_default_sed_bb_var} )
 eval $BITBAKE_SETTINGS
