@@ -126,7 +126,7 @@ bulkbuild () {
 	done
 }
 
-deploybundles () {
+deployartifacts () {
 	: ${DEPLOY_DIR_IMAGE_BASE:="${DEPLOY_DIR_IMAGES}"}
 	: ${DEPLOY_DIR_SDK_BASE:="${DEPLOY_DIR_SDK}"}
 	: ${MACHINES:="$(ls ${DEPLOY_DIR_IMAGE_BASE})"}
@@ -168,8 +168,8 @@ deploybundles () {
         test "${#_OE_GITREPOS[*]}" -gt 0 || __oe_guess_repos
         for _li in $(seq 0 $(expr ${#_OE_GITREPOS[*]} - 1))
 	do
-	    test -d ${_OE_GITREPOS[$_li]}/scripts/deploybundles.d || continue
-	    for dbd in ${_OE_GITREPOS[$_li]}/scripts/deploybundles.d/*
+	    test -d ${_OE_GITREPOS[$_li]}/scripts/deployartifacts.d || continue
+	    for dbd in ${_OE_GITREPOS[$_li]}/scripts/deployartifacts.d/*
 	    do
 		source $dbd
 	    done
@@ -199,7 +199,7 @@ releasebuild () {
 
 	unset DEVELOPER_BUILD_RUNNING DEVELOPER_BUILD_SUCCEEDED RELEASE_BUILD_RUNNING RELEASE_BUILD_SUCCEEDED
 	time RELEASE_BUILD_RUNNING=1 bulkbuild
-	time RELEASE_BUILD_SUCCEEDED=1 deploybundles
+	time RELEASE_BUILD_SUCCEEDED=1 deployartifacts
 
 	# bump
 	PS=$(printf 'my @v = split(/\./, "%s"); $v[$#v]++; print join( ".", @v)\n' "${SYSIMG_VERSION}")
@@ -233,7 +233,7 @@ devbuild () {
 
 	unset DEVELOPER_BUILD_RUNNING DEVELOPER_BUILD_SUCCEEDED RELEASE_BUILD_RUNNING RELEASE_BUILD_SUCCEEDED
 	time DEVELOPER_BUILD_RUNNING=1 bulkbuild
-	time DEVELOPER_BUILD_SUCCEEDED=1 deploybundles
+	time DEVELOPER_BUILD_SUCCEEDED=1 deployartifacts
 }
 
 echo "$0 started at date --rfc-3339=ns"
@@ -269,7 +269,7 @@ eval $BITBAKE_SETTINGS
 echo "$0 starting business at date --rfc-3339=ns"
 
 case $SCRIPT in
-	bulkbuild|deploybundles|releasebuild|devbuild)
+	bulkbuild|deployartifacts|releasebuild|devbuild)
 		eval $SCRIPT
 		if test "$?" = "42"
 		then
