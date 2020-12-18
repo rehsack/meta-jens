@@ -1,0 +1,268 @@
+#!/bin/bash
+
+SCRIPT="$(basename $0)"
+SCRIPTDIR="$(dirname $0)"
+
+help() {
+    test -n "$1" && echo "$@"
+    cat <<EOH
+$SCRIPT -b <BRANCH> -d <BUILDDIR> -D <DISTRO_REPO_DIR> -t <BB_TARGETS> -t <BB_TARGETS>
+    -r <RECIPE_FOR_VARIABLES> -a <APPLY_TIMESTAMP> -B <BITBAKE_CMD> [-v] | -h | -u
+	-b: specify colon-separated branch(es) to be build -- evaluated from left to right
+	-B: bitbake-cmd (or wrapper), defaults to 'bitbake'
+	-d: specify full qualified path to build directory
+	-D: specify full qualified path of distribution repository
+	-t: specify targets (recipes) to be built by bitbake
+	-r: specify recipe to be used to fetch variables (e.g. release version)
+	-a: specify timestamp when update shall become applied
+	-p: prune builddir before starting a new build
+	-v: verbosity on
+	-h: show help
+	-u: show usage
+EOH
+    exit 0
+}
+
+usage() {
+    test -n "$1" && echo "$@"
+    cat <<EOH
+$SCRIPT -b <BRANCH> -d <BUILDDIR> -D <DISTRO_REPO_DIR> -t <BB_TARGETS> -t <BB_TARGETS>
+    -r <RECIPE_FOR_VARIABLES> -a <APPLY_TIMESTAMP> -B <BITBAKE_CMD> [-v] | -h | -u
+EOH
+    exit 0
+}
+
+set -x
+
+: ${VERBOSE:="0"}
+: ${VAR_RECIPE:="system-image"}
+: ${BUILDPATH:=${BUILDDIR}}
+: ${PRUNE4BULK:="0"}
+: ${APPLY_TIMESTAMP:="null"}
+: ${BITBAKE_CMD:="bitbake"}
+ 
+declare -a _BB_EXTRA_TARGETS
+
+parseopts () {
+	while getopts "huvVpb:B:d:D:r:t:a:" o
+	do
+		case "${o}" in
+		B)
+			BITBAKE_CMD="${OPTARG}"
+			;;
+		b)
+			BRANCH=${OPTARG}
+			;;
+		r)
+			VAR_RECIPE=${OPTARG}
+			;;
+		D)
+			DISTRO_REPO_DIR=${OPTARG}
+			;;
+		d)
+			BUILDPATH=${OPTARG}
+			;;
+		t)
+			case "${OPTARG}" in
+			[_a-zA-Z]*\ -*)
+				_BB_EXTRA_TARGETS[${#_BB_EXTRA_TARGETS[*]}]="${OPTARG}"
+				;;
+			*)
+				BB_TARGETS="${BB_TARGETS}${BB_SPC}${OPTARG}"
+				BB_SPC=" "
+				;;
+			esac
+			;;
+		a)
+			APPLY_TIMESTAMP=${OPTARG}
+			;;
+		p)
+			PRUNE4BULK="1"
+			;;
+		v)
+			VERBOSE="1"
+			;;
+		h)
+			help
+			;;
+		*)
+			usage
+			;;
+		esac
+	done
+	shift $((OPTIND-1))
+}
+
+bulkbuild () {
+	test -z "${BRANCH}" && help "Missing <BRANCH>"
+
+	if [ -z "${MACHINES}" ]
+	then
+		__oe_guess_repos
+		: ${DISTRO_REPO_INDEX:="$(expr ${#_OE_GITREPOS[*]} - 2)"}
+		: ${DISTRO_REPO_DIR:="${_OE_GITREPOS[$DISTRO_REPO_INDEX]}"}
+		test -d "${DISTRO_REPO_DIR}/conf" -a -d "${DISTRO_REPO_DIR}/conf/machine" || __oe_die "Cannot find proper machine configuration"
+	fi
+
+	set -e
+
+	test "${BULKREBASE}" = "done" || __oe_repository_rebase ${BRANCH}
+	BULKREBASE="done"
+	test "x${PRUNE4BULK}" != "x0" && oe_builddir prune
+
+	: ${MACHINES:="$(basename --multiple --suffix=.conf ${DISTRO_REPO_DIR}/conf/machine/*.conf)"}
+	echo $MACHINES
+
+	cd "${BUILDPATH}"
+
+	for MACHINE in ${MACHINES}
+	do
+		export MACHINE
+		time ${BITBAKE_CMD} ${BB_TARGETS}
+		for _bbi in $(seq 0 $(expr ${#_BB_EXTRA_TARGETS[*]} - 1));
+		do
+			time ${BITBAKE_CMD} ${_BB_EXTRA_TARGETS[$_bbi]}
+		done
+	done
+}
+
+deploybundles () {
+	DEPLOY_DIR_IMAGE_BASE="${BUILDDIR}/tmp/deploy/images"
+	DEPLOY_DIR_SDK_BASE="${BUILDDIR}/tmp/deploy/sdk"
+	MACHINES="$(ls ${DEPLOY_DIR_IMAGE_BASE})"
+
+	MANISPC=""
+	BUNDLE_SPC=""
+	for MACHINE in ${MACHINES}
+	do
+	    DEPLOY_DIR_IMAGE="${DEPLOY_DIR_IMAGE_BASE}/${MACHINE}"
+
+	    BUNDLE_MANIFEST=$(ls ${DEPLOY_DIR_IMAGE}/.updatable-*-bundle-*-${MACHINE}-manifest)
+	    WANTED_ROOT_DEV=${WANTED_ROOT_DEV:-$(. ${BUNDLE_MANIFEST}; echo ${WANTED_ROOT_DEV})}
+	    BUNDLE_BASE_VERSION=${BUNDLE_BASE_VERSION:-$(. ${BUNDLE_MANIFEST}; echo "${VERSION}")}
+	    test "${DEVELOPER_BUILD_SUCCEEDED}" = "1" && BUNDLE_VERSION_EXT=${BUNDLE_VERSION_EXT:-$(. ${BUNDLE_MANIFEST}; echo ".${BUILD}")}
+	    BUNDLE_VERSION=${BUNDLE_VERSION:-"${BUNDLE_BASE_VERSION}${VERSION_EXT}"}
+
+	    for BUNDLE in ${DEPLOY_DIR_IMAGE}/*-${WANTED_ROOT_DEV}-${MACHINE}-${BUNDLE_VERSION}-*.sfsuc
+	    do
+		BUNDLE=$(echo ${BUNDLE} | sed -e "s,${DEPLOY_DIR_IMAGE_BASE}/,,")
+		NAME=$(echo ${BUNDLE} | sed -e "s,updatable-,," -e "s,-bundle-.*\.sfsuc,," -e 's,-,+,g')
+		MANI="${MANI}${MANISPC}\"${NAME}\": \"${BUNDLE}\""
+		MANISPC=",
+		"
+		BUNDLE_LIST="${BUNDLE_LIST}${BUNDLE_SPC}${BUNDLE}"
+		BUNDLE_SPC=" "
+	    done
+	done
+
+	APPLY_TIMESTAMP_ISO="$APPLY_TIMESTAMP"
+	test "x$APPLY_TIMESTAMP" = "xnull" || APPLY_TIMESTAMP_ISO="\"$(date -d "${APPLY_TIMESTAMP}" --iso-8601=seconds | sed -e 's/+.*//g')\""
+
+	MANIFEST="{
+	    \"${BUNDLE_VERSION}\": {
+		${MANI},
+		\"apply\": ${APPLY_TIMESTAMP_ISO}
+	    }
+	}"
+
+        test "${#_OE_GITREPOS[*]}" -gt 0 || __oe_guess_repos
+        for _li in $(seq 0 $(expr ${#_OE_GITREPOS[*]} - 1))
+	do
+	    test -d ${_OE_GITREPOS[$_li]}/scripts/deploybundles.d || continue
+	    for dbd in ${_OE_GITREPOS[$_li]}/scripts/deploybundles.d/*
+	    do
+		source $dbd
+	    done
+	done
+}
+
+releasebuild () {
+	test -z "${BRANCH}" && help "Missing <BRANCH>"
+
+	test "${#_OE_GITREPOS[*]}" -gt 0 || __oe_guess_repos
+
+	: ${DISTRO_REPO_INDEX:="$(expr ${#_OE_GITREPOS[*]} - 2)"}
+	: ${DISTRO_REPO_DIR:="${_OE_GITREPOS[$DISTRO_REPO_INDEX]}"}
+	test -d "${DISTRO_REPO_DIR}/conf" -a -d "${DISTRO_REPO_DIR}/conf/distro" || __oe_die "Cannot find proper distribution configuration"
+
+	: ${DISTRO_NAME:=${DISTRO_NAME:-"$(basename ${DISTRO_REPO_DIR} | sed -e 's,meta-,,')"}}
+	: ${DISTRO_VERSION_FILE:="conf/distro/${DISTRO_NAME}.conf"}
+	: ${DISTRO_VERSION_PATH:="${DISTRO_REPO_DIR}/${DISTRO_VERSION_FILE}"}
+	test -f ${DISTRO_VERSION_PATH} -a -w ${DISTRO_VERSION_PATH} || __oe_die "Cannot access '${DISTRO_VERSION_PATH}' for updating"
+
+	test "${BULKREBASE}" = "done" || __oe_repository_rebase ${BRANCH}
+	test "$_OE_REPOSITORIES_CHANGED" = "1" && return 42
+	BULKREBASE="done"
+
+	cd "${DISTRO_REPO_DIR}"
+	git log -n 1 | grep "bump.*${SYSIMG_VERSION}" && __oe_die "Image is up to date"
+
+	unset DEVELOPER_BUILD_RUNNING DEVELOPER_BUILD_SUCCEEDED
+	time RELEASE_BUILD_RUNNING=1 bulkbuild
+	time RELEASE_BUILD_SUCCEEDED=1 deploybundles
+
+	# bump
+	PS=$(printf 'my @v = split(/\./, "%s"); $v[$#v]++; print join( ".", @v)\n' "${SYSIMG_VERSION}")
+	SYSIMG_BUMPED=$(perl -le "$PS")
+
+        for _li in $(seq 0 $(expr ${#_OE_GITREPOS[*]} - 1))
+	do
+	    cd "${_OE_GITREPOS[$_li]}"
+	    git push
+	done
+
+        for _li in $(seq 0 $(expr ${#_OE_GITREPOS[*]} - 1))
+	do
+	    cd "${_OE_GITREPOS[$_li]}"
+	    git tag "${DISTRO_NAME}-${SYSIMG_VERSION}" && git push --tags || :
+	done
+
+	cd "${DISTRO_REPO_DIR}"
+	sed -i -e "s/${SYSIMG_VERSION}/${SYSIMG_BUMPED}/" "${DISTRO_VERSION_FILE}"
+	git commit -m "bump version after release to ${SYSIMG_BUMPED}" "${DISTRO_VERSION_FILE}"
+	git push
+}
+
+devbuild () {
+	test -z "${BRANCH}" && help "Missing <BRANCH>"
+
+	# for first shot we assume, primary and secondary branches are to use
+	__oe_repository_rebase ${BRANCH} "true"
+	test "$_OE_REPOSITORIES_CHANGED" = "1" && return 42
+	BULKREBASE="done"
+
+	unset RELEASE_BUILD_RUNNING RELEASE_BUILD_SUCCEEDED
+	time DEVELOPER_BUILD_RUNNING=1 bulkbuild
+	time DEVELOPER_BUILD_SUCCEEDED=1 deploybundles
+}
+
+# PARSED_OPTIONS=$(parseopts "$@")
+# eval $PARSED_OPTIONS
+parseopts "$@"
+
+test -z "${OEROOT}" && OEROOT=$(readlink -f ${DISTRO_REPO_DIR}/../poky)
+. ${OEROOT}/scripts/oe-init-bashrc
+
+test -z "${BUILDPATH}" && help "Missing <BUILDPATH>"
+test -d "${BUILDPATH}" -a -x "${BUILDPATH}" || help "'${BUILDPATH}' must be an accessible directory"
+
+oe_builddir use ${BUILDPATH}
+_default_get_bb_var="PV|BSPDIR|DISTRO"
+_default_sed_bb_var="-e s,PV,SYSIMG_VERSION, -e s,DISTRO,DISTRO_NAME,"
+test -z "${WANTED_ROOT_DEV}" && _default_get_bb_var="${_default_get_bb_var}|WANTED_ROOT_DEV"
+
+BITBAKE_SETTINGS=$(__oe_bb_var "${_default_get_bb_var}" | sed ${_default_sed_bb_var} )
+eval $BITBAKE_SETTINGS
+
+case $SCRIPT in
+	bulkbuild|deploybundles|releasebuild|devbuild)
+		eval $SCRIPT
+		if test "$?" = "42"
+		then
+			exec "$0" "$@"
+		fi
+		;;
+	*)
+		__oe_die "Unsupported build helper component: $SCRIPT"
+		;;
+esac
