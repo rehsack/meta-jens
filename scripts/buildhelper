@@ -7,11 +7,14 @@ help() {
     test -n "$1" && echo "$@"
     cat <<EOH
 $SCRIPT -b <BRANCH> -d <BUILDDIR> -D <DISTRO_REPO_DIR> -t <BB_TARGETS> -t <BB_TARGETS>
-    -r <RECIPE_FOR_VARIABLES> -a <APPLY_TIMESTAMP> -B <BITBAKE_CMD> [-v] | -h | -u
+    -r <RECIPE_FOR_VARIABLES> -a <APPLY_TIMESTAMP> -B <BITBAKE_CMD> -E <BULK_OPERATION>
+    -E <BULK_OPERATION> [-v] | -h | -u
 	-b: specify colon-separated branch(es) to be build -- evaluated from left to right
 	-B: bitbake-cmd (or wrapper), defaults to 'bitbake'
 	-d: specify full qualified path to build directory
 	-D: specify full qualified path of distribution repository
+	-E: specify one or more bulk operation (out of
+	    ${AVAIL_BULK_OPS}) to be executed in order
 	-t: specify targets (recipes) to be built by bitbake
 	-r: specify recipe to be used to fetch variables (e.g. release version)
 	-a: specify timestamp when update shall become applied
@@ -27,7 +30,8 @@ usage() {
     test -n "$1" && echo "$@"
     cat <<EOH
 $SCRIPT -b <BRANCH> -d <BUILDDIR> -D <DISTRO_REPO_DIR> -t <BB_TARGETS> -t <BB_TARGETS>
-    -r <RECIPE_FOR_VARIABLES> -a <APPLY_TIMESTAMP> -B <BITBAKE_CMD> [-v] | -h | -u
+    -r <RECIPE_FOR_VARIABLES> -a <APPLY_TIMESTAMP> -B <BITBAKE_CMD> -E <BULK_OPERATION>
+    -E <BULK_OPERATION> [-v] | -h | -u
 EOH
     exit 0
 }
@@ -40,11 +44,20 @@ set -x
 : ${PRUNE4BULK:="0"}
 : ${APPLY_TIMESTAMP:="null"}
 : ${BITBAKE_CMD:="bitbake"}
+: ${AVAIL_BULK_OPS:="bulkbuild|deployartifacts|releasebuild|devbuild"}
  
+__oe_append_bulk_op() { NEW=${1/%\//}; __oe_remove_bulk_op $NEW; export AVAIL_BULK_OPS="$AVAIL_BULK_OPS|$NEW"; }
+__oe_prepend_bulk_op() { NEW=${1/%\//}; __oe_remove_bulk_op $NEW; export AVAIL_BULK_OPS="$NEW|$AVAIL_BULK_OPS"; }
+__oe_remove_bulk_op()  {
+    # New format not supported by some old versions of awk
+    AVAIL_BULK_OPS=$(echo -n "$AVAIL_BULK_OPS" | awk  'BEGIN { RS="|"; ORS="|" } $0 != "'$1'" ')
+    export AVAIL_BULK_OPS=${AVAIL_BULK_OPS/%:/}
+}
+
 declare -a _BB_EXTRA_TARGETS
 
 parseopts () {
-	while getopts "huvVpb:B:d:D:r:t:a:" o
+	while getopts "huvVpb:B:d:D:E:r:t:a:" o
 	do
 		case "${o}" in
 		B)
@@ -61,6 +74,10 @@ parseopts () {
 			;;
 		d)
 			BUILDPATH=${OPTARG}
+			;;
+		E)
+			WANTED_BULK_OPS="${WANTED_BULK_OPS}${WANTED_BULK_SPC}${OPTARG}"
+			WANTED_BULK_SPC=" "
 			;;
 		t)
 			case "${OPTARG}" in
@@ -268,17 +285,20 @@ eval $BITBAKE_SETTINGS
 
 echo "$0 starting business at date --rfc-3339=ns"
 
-case $SCRIPT in
-	bulkbuild|deployartifacts|releasebuild|devbuild)
-		eval $SCRIPT
+: ${WANTED_BULK_OPS:="$SCRIPT"}
+
+for bulk_op in ${WANTED_BULK_OPS}
+do
+	if [[ $bulk_op == +(${AVAIL_BULK_OPS}) ]] 
+	then
+		eval $bulk_op
 		if test "$?" = "42"
 		then
 			"$0" "$@"
 		fi
-		;;
-	*)
-		__oe_die "Unsupported build helper component: $SCRIPT"
-		;;
-esac
+	else
+		__oe_die "Unsupported build helper component: $bulk_op"
+	fi
+done
 
 echo "$0 finished at date --rfc-3339=ns"
