@@ -135,11 +135,11 @@ bulkbuild () {
 	for MACHINE in ${MACHINES}
 	do
 		export MACHINE
-		time ${BITBAKE_CMD} ${BB_TARGETS}
 		for _bbi in $(seq 0 $(expr ${#_BB_EXTRA_TARGETS[*]} - 1));
 		do
 			time ${BITBAKE_CMD} ${_BB_EXTRA_TARGETS[$_bbi]}
 		done
+		time ${BITBAKE_CMD} ${BB_TARGETS}
 	done
 }
 
