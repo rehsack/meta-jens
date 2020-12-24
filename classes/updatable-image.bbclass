@@ -19,6 +19,7 @@ FEATURE_PACKAGES_app-devel = "package-group-app-devel"
 FEATURE_PACKAGES_app-shell-login = "package-group-app-shell-login"
 
 UPDATABLE_IMAGE_CLASSES ??= ""
+PACKAGE_ARCH ?= "${MACHINE_ARCH}-${WANTED_ROOT_DEV}"
 
 UPDTIMGCLASSES = "core-image ${UPDATABLE_IMAGE_CLASSES}"
 
