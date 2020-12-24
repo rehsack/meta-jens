@@ -286,15 +286,19 @@ eval $BITBAKE_SETTINGS
 echo "$0 starting business at $(date --rfc-3339=ns)"
 
 : ${WANTED_BULK_OPS:="$SCRIPT"}
-
+EXITCODE=0
 for bulk_op in ${WANTED_BULK_OPS}
 do
 	if [[ $bulk_op == +(${AVAIL_BULK_OPS}) ]] 
 	then
 		eval $bulk_op
-		if test "$?" = "42"
+		EXITCODE="$?"
+		if test "$EXITCODE" = "42"
 		then
 			exec "$0" "$@"
+		elif test "$EXITCODE" != "0"
+		then
+			break
 		fi
 	else
 		__oe_die "Unsupported build helper component: $bulk_op"
@@ -302,3 +306,4 @@ do
 done
 
 echo "$0 finished at $(date --rfc-3339=ns)"
+exit $EXITCODE
