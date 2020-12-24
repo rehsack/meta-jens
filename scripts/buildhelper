@@ -294,7 +294,7 @@ do
 		eval $bulk_op
 		if test "$?" = "42"
 		then
-			"$0" "$@"
+			exec "$0" "$@"
 		fi
 	else
 		__oe_die "Unsupported build helper component: $bulk_op"
