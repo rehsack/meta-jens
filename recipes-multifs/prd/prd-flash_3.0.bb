@@ -127,10 +127,17 @@ def write_disc_access (wrt, d):
         disc_writer.write("    parted -s /dev/%s unit KiB mkpart primary ${%s_FS_START} ${%s_FS_END}\n" % (device_name, part, part))
         if 'filesystem' in part_flags and 'src' in part_flags and part_flags.get('src') == "none":
             fs = part_flags.get("filesystem")
-            fs_create = part_flags.get("fs_create") or ""
-            disc_writer.write("    mkfs -t %s %s /dev/%s%s%d\n" % (fs, fs_create, device_name, device_sep, part_no))
+            if 'fs_create' in part_flags:
+                fs_create = " " + part_flags.get("fs_create")
+            else:
+                fs_create = ""
+            if 'fs_label' in part_flags:
+                fs_create = fs_create + " -L " + part_flags.get("fs_label")
+            disc_writer.write("    mkfs -t%s %s /dev/%s%s%d\n" % (fs, fs_create, device_name, device_sep, part_no))
             if 'fs_tune' in part_flags:
                 fs_tune = part_flags.get("fs_tune")
+                if 'fs_label' in part_flags:
+                    fs_tune = fs_tune + " -L " + part_flags.get("fs_label")
                 disc_writer.write("    tune2fs %s /dev/%s%s%d\n" % (fs_tune, device_name, device_sep, part_no))
             mount.append(part)
 
