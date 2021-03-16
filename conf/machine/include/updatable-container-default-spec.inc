@@ -1,6 +1,8 @@
 # Updatable Image Container - specify images
 
-UPDATABLE_BUNDLE_HASH_ALGORITHMS ?= "size md5 rmd160 sha1"
+UPDATABLE_BUNDLE_WKS_FILENAME ??= "${MACHINE}-${WANTED_ROOT_DEV}.wks"
+WKS_FILES = "${UPDATABLE_BUNDLE_WKS_FILENAME}"
+
 UPDATABLE_BUNDLE_SIGN_ALGORITHM  ?= "sha256"
 
 UPDATABLE_BUNDLE_MANIFEST ??= "manifest"
@@ -58,8 +60,9 @@ UPDATABLE_PARTITIONS[alignment] ?= "1M"
 UPDATABLE_PARTITION_BOOT[type]       ?= "partition"
 UPDATABLE_PARTITION_BOOT[size]       ?= "32M"
 UPDATABLE_PARTITION_BOOT[filesystem] ?= "ext4"
-UPDATABLE_PARTITION_BOOT[fs_create]  ?= "-L boot-${MACHINE} -I128"
-UPDATABLE_PARTITION_BOOT[fs_tune]    ?= "-L boot-${MACHINE} -O discard,block_validity"
+UPDATABLE_PARTITION_BOOT[fs_label]   ?= "boot-${MACHINE}"
+UPDATABLE_PARTITION_BOOT[fs_create]  ?= "-I128 -E discardd"
+UPDATABLE_PARTITION_BOOT[fs_tune]    ?= "-O discard,block_validity"
 UPDATABLE_PARTITION_BOOT[src]        ?= "none"
 UPDATABLE_PARTITION_BOOT[mountpoint] ?= "/boot"
 
@@ -68,6 +71,7 @@ UPDATABLE_PARTITION_APP[size]       ?= "512M"
 UPDATABLE_PARTITION_APP[filesystem] ?= "squashfs"
 UPDATABLE_PARTITION_APP[src]        ?= "slot"
 UPDATABLE_PARTITION_APP[slot]       ?= "APP"
+UPDATABLE_PARTITION_APP[mountpoint] ?= "/"
 UPDATABLE_PARTITION_APP[onmount]    ?= "UPDATE_UPDATER=Y"
 
 UPDATABLE_PARTITION_UPDATER[type]       ?= "partition"
@@ -75,13 +79,14 @@ UPDATABLE_PARTITION_UPDATER[size]       ?= "128M"
 UPDATABLE_PARTITION_UPDATER[filesystem] ?= "squashfs"
 UPDATABLE_PARTITION_UPDATER[src]        ?= "slot"
 UPDATABLE_PARTITION_UPDATER[slot]       ?= "UPDATER"
+UPDATABLE_PARTITION_UPDATER[mountpoint] ?= "/"
 
 UPDATABLE_PARTITION_DATA[type]       ?= "partition"
 UPDATABLE_PARTITION_DATA[size]       ?= "-1"
 UPDATABLE_PARTITION_DATA[filesystem] ?= "ext4"
-UPDATABLE_PARTITION_DATA[fs_create]  ?= "-L data-${MACHINE}"
-UPDATABLE_PARTITION_DATA[fs_tune]    ?= "-L data-${MACHINE} -O journal_data,discard,block_validity"
+UPDATABLE_PARTITION_DATA[fs_label]   ?= "data-${MACHINE}"
+UPDATABLE_PARTITION_DATA[fs_create]  ?= "-E discard"
+UPDATABLE_PARTITION_DATA[fs_tune]    ?= "-O discard,block_validity"
 # layout by volatile
 UPDATABLE_PARTITION_DATA[src]        ?= "none"
 UPDATABLE_PARTITION_DATA[mountpoint] ?= "/data"
-
