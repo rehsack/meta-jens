@@ -2,3 +2,4 @@
 *.orig
 *.rej
 *.swp
+__pycache__
