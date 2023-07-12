@@ -58,11 +58,11 @@ SYSTEM_IMAGE_UPDATE_DOWNLOAD_SERVER ??= "update.poed.de"
 SYSTEM_IMAGE_UPDATE_DOWNLOAD_PATH ??= "${MACHINE}"
 SYSTEM_IMAGE_UPDATE_MANIFEST_BASENAME ??= "manifest-${DISTRO_BASE_VERSION}.json"
 
-do_configure_append() {
+do_configure:append() {
 	oe_runmake manifest
 }
 
-do_compile_append() {
+do_compile:append() {
 	sed -i -e "s,@SERVICE_NAME[@],${SERVICE_NAME},g" -e "s/@MACHINE[@]/${MACHINE}/g" \
 	    -e "s,@MYSELF[@],${PN},g" \
 	    -e "s,@SYSTEM_IMAGE_UPDATE_STATE_DIR[@],${SYSTEM_IMAGE_UPDATE_STATE_DIR},g" \
@@ -78,7 +78,7 @@ do_compile_append() {
 	    ${WORKDIR}/sysimg-update.properties
 }
 
-do_install_append() {
+do_install:append() {
     install -d -m 755 ${D}${sysconfdir}
     install -m 0644 ${WORKDIR}/sysimg-update.json ${D}${sysconfdir}
     install -m 0644 ${WORKDIR}/sysimg-update.properties ${D}${sysconfdir}

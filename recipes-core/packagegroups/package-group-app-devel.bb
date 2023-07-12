@@ -18,4 +18,4 @@ RDEPENDS_${PN} = "\
 	subversion \
 	valgrind \
 "
-RDEPENDS_${PN}_append = "${@bb.utils.contains("MACHINE_FEATURES", "efi", "efibootmgr", "", d)}"
+RDEPENDS_${PN}:append = "${@bb.utils.contains("MACHINE_FEATURES", "efi", "efibootmgr", "", d)}"

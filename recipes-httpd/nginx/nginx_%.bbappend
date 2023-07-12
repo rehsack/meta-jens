@@ -1,13 +1,13 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-SRC_URI_append = "\
+SRC_URI:append = "\
     file://nginx-logrotate.conf \
     file://nginx-varlib.volatiles \
 "
 
 RDEPENDS_${PN} += "logrotate"
 
-do_install_append () {
+do_install:append () {
 	install -d ${D}${localstatedir}/lib/nginx/
 	install -d ${D}${sysconfdir}/default/volatiles
 	install -m 644 ${WORKDIR}/nginx-varlib.volatiles ${D}${sysconfdir}/default/volatiles/98_nginx_varlib

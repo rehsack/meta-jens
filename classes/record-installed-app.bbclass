@@ -5,7 +5,7 @@
 
 inherit record-installed-common
 
-do_install_append () {
+do_install:append () {
         install -d "${D}/${RECORD_INSTALLED_DEST}"
 	case "${PV}" in
 	git|svn)

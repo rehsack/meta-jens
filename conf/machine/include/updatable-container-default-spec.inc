@@ -8,7 +8,7 @@ UPDATABLE_BUNDLE_SIGN_ALGORITHM  ?= "sha256"
 UPDATABLE_BUNDLE_MANIFEST ??= "manifest"
 
 UPDATABLE_BUNDLE_HOOKS ??= ""
-UPDATABLE_BUNDLE_HOOKS_append = " cleandeploy cleanupdate cleanbundle clean_volatile check_app check_updater"
+UPDATABLE_BUNDLE_HOOKS:append = " cleandeploy cleanupdate cleanbundle clean_volatile check_app check_updater"
 UPDATABLE_BUNDLE_HOOKS[trigger] ?= "postverify preupdate postupdate predeploy postdeploy onfinish finishdeploy finishupdate"
 
 UPDATABLE_BUNDLE_HOOK_cleandeploy[type] = "inline"

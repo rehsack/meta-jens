@@ -22,7 +22,7 @@ inherit supervised record-installed-query system-image-update
 
 PACKAGECONFIG ??= ""
 
-PROVIDES_append = " ${PN}-nginx-proxy"
+PROVIDES:append = " ${PN}-nginx-proxy"
 PACKAGES =+ "${PN}-nginx-proxy"
 PACKAGECONFIG[nginx-proxy] = ""
 

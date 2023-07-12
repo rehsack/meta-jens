@@ -1,4 +1,4 @@
-FILESEXTRAPATHS_append := "${THISDIR}/files:${THISDIR}/busybox:"
+FILESEXTRAPATHS:append := "${THISDIR}/files:${THISDIR}/busybox:"
 
 SRC_URI += "\
     file://arping.cfg \
@@ -133,14 +133,14 @@ SERVICE_RUN_SCRIPT_NAME_${PN}-ifplugd = "ifplugd/ifplugd.default-wifi"
 SERVICE_RUN_SCRIPT_DOWN_${PN}-ifplugd = "down"
 SERVICE_LOG_SCRIPT_NAME_${PN}-ifplugd = "log"
 
-PROVIDES_append = "${@bb.utils.contains("PACKAGECONFIG", 'network-setup', ' ifupdown ', '', d )}"
-RPROVIDES_${PN}_append = "${@bb.utils.contains("PACKAGECONFIG", 'network-setup', ' ifupdown ', '', d )}"
-PROVIDES_append = "${@bb.utils.contains("PACKAGECONFIG", 'no-procps', '', 'procps', d )}"
-RPROVIDES_${PN}_append = "${@bb.utils.contains("PACKAGECONFIG", 'no-procps', '', 'procps', d )}"
+PROVIDES:append = "${@bb.utils.contains("PACKAGECONFIG", 'network-setup', ' ifupdown ', '', d )}"
+RPROVIDES_${PN}:append = "${@bb.utils.contains("PACKAGECONFIG", 'network-setup', ' ifupdown ', '', d )}"
+PROVIDES:append = "${@bb.utils.contains("PACKAGECONFIG", 'no-procps', '', 'procps', d )}"
+RPROVIDES_${PN}:append = "${@bb.utils.contains("PACKAGECONFIG", 'no-procps', '', 'procps', d )}"
 
-RRECOMMENDS_${PN}_append =  "${@bb.utils.contains("PACKAGECONFIG", 'network-setup', ' ${PACKAGES_WIFI_CHOOSE} ', '', d )}"
+RRECOMMENDS_${PN}:append =  "${@bb.utils.contains("PACKAGECONFIG", 'network-setup', ' ${PACKAGES_WIFI_CHOOSE} ', '', d )}"
 
-do_compile_append () {
+do_compile:append () {
 	if grep -q "CONFIG_IFPLUGD=y" ${B}/.config; then
 		sed -i -e "s,@DEFAULT_ETH_DEV[@],${DEFAULT_ETH_DEV},g" -e "s,@DEFAULT_WIFI_DEV[@],${DEFAULT_WIFI_DEV},g" \
 		       -e "s,@BINDIR[@],${bindir},g" -e "s,@SERVICE_DIR[@],${SERVICE_DIR_${PN}-ifplugd},g" \
@@ -149,7 +149,7 @@ do_compile_append () {
 	fi
 }
 
-do_install_append() {
+do_install:append() {
     if grep -q "CONFIG_IFPLUGD=y" ${B}/.config; then
         if ${@bb.utils.contains('DISTRO_FEATURES', 'sysvinit', 'true', 'false', d)}
         then

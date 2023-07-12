@@ -1,11 +1,11 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/base-files:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/base-files:"
 
 volatiles := ""
 
-DEPENDS_append = "virtual-fstab-${WANTED_ROOT_DEV}"
-RDEPENDS_${PN}_append = "virtual-fstab-${WANTED_ROOT_DEV}"
+DEPENDS:append = "virtual-fstab-${WANTED_ROOT_DEV}"
+RDEPENDS_${PN}:append = "virtual-fstab-${WANTED_ROOT_DEV}"
 
-do_compile_append () {
+do_compile:append () {
     mkdir -p ${S}
     echo "#!/bin/sh
 
@@ -13,7 +13,7 @@ do_compile_append () {
 " > ${S}/cron-urandom-save-seed
 }
 
-do_install_append () {
+do_install:append () {
     rm -f ${D}${sysconfdir}/fstab
 
     install -d ${D}/data

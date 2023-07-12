@@ -2,7 +2,7 @@ DESCRIPTION = "Initscript for flashing images at boot"
 
 OPN := "${PN}"
 PN = "${OPN}-${WANTED_ROOT_DEV}"
-FILESEXTRAPATHS_prepend := "${THISDIR}/${OPN}:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/${OPN}:"
 
 inherit system-image-update
 
@@ -31,7 +31,7 @@ def is_uboot_bootloader(trueval, falseval, d):
 
 DEPENDS += "update-rc.d-native libubootenv openssl-native"
 # append to the base setting from ${OPN}-${WANTED_ROOT_DEV}.inc
-RDEPENDS_${PN}_append = "\
+RDEPENDS_${PN}:append = "\
         file \
         openssl-bin \
         perl-module-version \

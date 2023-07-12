@@ -4,11 +4,11 @@
 DESCRIPTION = "Delivery Reset"
 HOMEPAGE = "http://act.yapc.eu/gpw2018/index.html"
 LICENSE = "LGPLv2.1"
-DEPENDS_append = " update-rc.d-native"
+DEPENDS:append = " update-rc.d-native"
 
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/LGPL-2.1;md5=1a6d268fd218675ffea8be556788b780"
 
-FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
 
 SRC_URI = "\
     file://delivery-reset.common \

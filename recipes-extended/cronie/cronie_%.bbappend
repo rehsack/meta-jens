@@ -1,8 +1,8 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 SRC_URI += "file://cronie.volatiles"
 
-do_install_append () {
+do_install:append () {
 	install -d ${D}${sysconfdir}/default/volatiles
 
 	install -m 644 ${WORKDIR}/cronie.volatiles ${D}${sysconfdir}/default/volatiles/97_cronie
